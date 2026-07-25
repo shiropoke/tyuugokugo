@@ -1,6 +1,13 @@
 "use strict";
 
 const STORAGE_KEY = "tyuugokugo-mistake-words";
+const HISTORY_APP_ID = "tyuugokugo";
+const SCREEN_HASHES = {
+  home: "#home",
+  quiz: "#quiz",
+  result: "#result",
+  wordList: "#words"
+};
 
 const elements = {
   screens: {
@@ -34,11 +41,13 @@ const elements = {
   answerMeaning: document.querySelector("#answer-meaning"),
   nextButton: document.querySelector("#next-button"),
   restartButton: document.querySelector("#restart-button"),
-  scorePercent: document.querySelector("#score-percent"),
   resultTitle: document.querySelector("#result-title"),
+  resultDescription: document.querySelector("#result-description"),
+  resultAnswered: document.querySelector("#result-answered"),
   resultCorrect: document.querySelector("#result-correct"),
-  resultTotal: document.querySelector("#result-total"),
+  resultIncorrect: document.querySelector("#result-incorrect"),
   resultRate: document.querySelector("#result-rate"),
+  resultPlanned: document.querySelector("#result-planned"),
   perfectMessage: document.querySelector("#perfect-message"),
   resultList: document.querySelector("#result-list"),
   retryButton: document.querySelector("#retry-button"),
@@ -57,27 +66,37 @@ const elements = {
 };
 
 const quizState = {
+  mode: "normal",
+  originalMode: "10",
   questions: [],
   sourceWords: [],
-  questionLimit: 0,
+  reviewQuestionIds: [],
   currentIndex: 0,
   correctCount: 0,
   answerHistory: [],
-  answered: false,
-  mode: "normal"
+  currentAnswered: false,
+  isInterrupted: false,
+  totalPlannedQuestions: 0,
+  startedAt: null
 };
 
+let currentScreenName = "home";
 let focusBeforeDialog = null;
+let inputFocusScrollTimer = null;
 
 function resetQuizState() {
+  quizState.mode = "normal";
+  quizState.originalMode = "10";
   quizState.questions = [];
   quizState.sourceWords = [];
-  quizState.questionLimit = 0;
+  quizState.reviewQuestionIds = [];
   quizState.currentIndex = 0;
   quizState.correctCount = 0;
   quizState.answerHistory = [];
-  quizState.answered = false;
-  quizState.mode = "normal";
+  quizState.currentAnswered = false;
+  quizState.isInterrupted = false;
+  quizState.totalPlannedQuestions = 0;
+  quizState.startedAt = null;
 }
 
 function shuffleWords(sourceWords) {
@@ -132,9 +151,8 @@ function saveMistakeWords(wordList) {
   }
 }
 
-function updateSavedMistake(questionWord, wasCorrect) {
-  const savedWords = loadSavedMistakeWords();
-  const updatedWords = new Set(savedWords);
+function updateStoredMistakes(questionWord, wasCorrect) {
+  const updatedWords = new Set(loadSavedMistakeWords());
 
   if (wasCorrect && quizState.mode === "review") {
     updatedWords.delete(questionWord);
@@ -166,15 +184,21 @@ function showOnlyScreen(screenName) {
     screen.hidden = name !== screenName;
   });
 
+  currentScreenName = screenName;
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-function showHomeScreen() {
+function showHomeScreen(options = {}) {
+  const { focus = true, reset = true } = options;
   speechController.cancel();
-  resetQuizState();
+  if (reset) {
+    resetQuizState();
+  }
   updateHomeReviewControls();
   showOnlyScreen("home");
-  elements.startButton.focus();
+  if (focus) {
+    elements.startButton.focus();
+  }
 }
 
 function showQuizScreen() {
@@ -182,66 +206,214 @@ function showQuizScreen() {
   showOnlyScreen("quiz");
 }
 
-function showResultScreen() {
-  speechController.cancel();
-  const totalQuestions = quizState.answerHistory.length;
-  const rate = totalQuestions === 0
-    ? 0
-    : Math.round((quizState.correctCount / totalQuestions) * 100);
-  const incorrectAnswers = quizState.answerHistory.filter((answer) => !answer.isCorrect);
+function calculateResultSummary() {
+  const answered = quizState.answerHistory.length;
+  const correct = quizState.answerHistory.filter((answer) => answer.isCorrect).length;
+  const incorrect = answered - correct;
+  const rawRate = answered === 0 ? 0 : (correct / answered) * 100;
+  const rate = Number.isInteger(rawRate) ? String(rawRate) : rawRate.toFixed(1);
 
-  elements.scorePercent.textContent = String(rate);
-  elements.resultCorrect.textContent = String(quizState.correctCount);
-  elements.resultTotal.textContent = String(totalQuestions);
-  elements.resultRate.textContent = `${rate}%`;
-  elements.perfectMessage.hidden = incorrectAnswers.length !== 0;
-  elements.resultReviewButton.hidden = incorrectAnswers.length === 0;
+  return { answered, correct, incorrect, rate };
+}
+
+function showResultScreen(options = {}) {
+  const { focus = true } = options;
+  speechController.cancel();
+  const summary = calculateResultSummary();
+
+  elements.resultTitle.textContent = quizState.isInterrupted ? "途中結果" : "クイズ結果";
+  elements.resultDescription.hidden = !quizState.isInterrupted;
+  elements.resultAnswered.textContent = String(summary.answered);
+  elements.resultCorrect.textContent = String(summary.correct);
+  elements.resultIncorrect.textContent = String(summary.incorrect);
+  elements.resultRate.textContent = `${summary.rate}%`;
+  elements.resultPlanned.hidden = !quizState.isInterrupted;
+  elements.resultPlanned.textContent = quizState.isInterrupted
+    ? `予定問題数：${quizState.totalPlannedQuestions}問`
+    : "";
+  elements.perfectMessage.hidden = quizState.isInterrupted || summary.incorrect !== 0;
+  elements.resultReviewButton.hidden = summary.incorrect === 0;
+  elements.retryButton.textContent = quizState.isInterrupted
+    ? "最初からもう一度挑戦"
+    : "もう一度挑戦";
   renderResultList();
   showOnlyScreen("result");
-  elements.resultTitle.focus();
+  if (focus) {
+    elements.resultTitle.focus();
+  }
 }
 
-function showWordListScreen() {
+function showWordListScreen(options = {}) {
+  const { focus = true, resetSearch = true } = options;
   speechController.cancel();
   resetQuizState();
-  elements.wordSearch.value = "";
-  renderWordList(words);
+  if (resetSearch) {
+    elements.wordSearch.value = "";
+  }
+  renderWordList(filterWords(elements.wordSearch.value));
   showOnlyScreen("wordList");
-  elements.wordListTitle.focus();
+  if (focus) {
+    elements.wordListTitle.focus();
+  }
 }
 
-function getSelectedQuestionCount() {
-  const selected = document.querySelector('input[name="question-count"]:checked');
-  return selected?.value === "all" ? words.length : Number(selected?.value || 10);
+function isValidScreenName(screenName) {
+  return Object.hasOwn(elements.screens, screenName);
 }
 
-function startQuiz(sourceWords, questionLimit, mode = "normal") {
-  if (sourceWords.length === 0) {
-    showHomeScreen();
+function getScreenFromHash() {
+  const entry = Object.entries(SCREEN_HASHES).find(([, hash]) => hash === window.location.hash);
+  return entry?.[0] || "home";
+}
+
+function createHistoryState(screenName, from = null) {
+  return {
+    app: HISTORY_APP_ID,
+    screen: screenName,
+    from
+  };
+}
+
+function renderScreenFromHistory(screenName, options = {}) {
+  const { focus = false } = options;
+
+  if (!isValidScreenName(screenName)) {
+    replaceHistoryWithHome({ focus });
     return;
   }
 
+  if (screenName === "home") {
+    showHomeScreen({ focus, reset: true });
+  } else if (screenName === "wordList") {
+    showWordListScreen({ focus, resetSearch: true });
+  } else if (screenName === "quiz" && quizState.questions.length > 0) {
+    showQuizScreen();
+  } else if (screenName === "result" && quizState.answerHistory.length > 0) {
+    showResultScreen({ focus });
+  } else {
+    replaceHistoryWithHome({ focus });
+  }
+}
+
+function navigateToScreen(screenName, options = {}) {
+  const {
+    historyAction = "push",
+    from = currentScreenName,
+    focus = true
+  } = options;
+
+  if (!isValidScreenName(screenName)) {
+    return;
+  }
+
+  const currentState = history.state;
+  const sameScreen =
+    currentState?.app === HISTORY_APP_ID &&
+    currentState.screen === screenName;
+
+  if (historyAction === "push" && !sameScreen) {
+    history.pushState(
+      createHistoryState(screenName, from),
+      "",
+      SCREEN_HASHES[screenName]
+    );
+  } else if (historyAction === "replace" || (historyAction === "push" && sameScreen)) {
+    history.replaceState(
+      createHistoryState(screenName, from),
+      "",
+      SCREEN_HASHES[screenName]
+    );
+  }
+
+  renderScreenFromHistory(screenName, { focus });
+}
+
+function replaceHistoryWithHome(options = {}) {
+  const { focus = true } = options;
+  history.replaceState(
+    createHistoryState("home", null),
+    "",
+    SCREEN_HASHES.home
+  );
+  showHomeScreen({ focus, reset: true });
+}
+
+function initializeHistory() {
+  const stateScreen =
+    history.state?.app === HISTORY_APP_ID
+      ? history.state.screen
+      : null;
+  let initialScreen = stateScreen || getScreenFromHash();
+
+  if (initialScreen === "quiz" || initialScreen === "result") {
+    initialScreen = "home";
+  }
+
+  history.replaceState(
+    createHistoryState(initialScreen, null),
+    "",
+    SCREEN_HASHES[initialScreen]
+  );
+  renderScreenFromHistory(initialScreen, { focus: false });
+}
+
+function getSelectedQuizConfiguration() {
+  const selected = document.querySelector('input[name="question-count"]:checked');
+  const originalMode = selected?.value || "10";
+  const questionLimit = originalMode === "all" ? words.length : Number(originalMode);
+
+  return { originalMode, questionLimit };
+}
+
+function startQuiz(sourceWords, questionLimit, mode = "normal", options = {}) {
+  if (sourceWords.length === 0) {
+    replaceHistoryWithHome();
+    return;
+  }
+
+  const {
+    historyAction = "push",
+    originalMode = mode === "review" ? "review" : String(questionLimit)
+  } = options;
   const safeLimit = Math.min(questionLimit, sourceWords.length);
+
+  quizState.mode = mode;
+  quizState.originalMode = originalMode;
   quizState.sourceWords = [...sourceWords];
-  quizState.questionLimit = safeLimit;
+  quizState.reviewQuestionIds = mode === "review"
+    ? sourceWords.map((item) => item.word)
+    : [];
   quizState.questions = shuffleWords(sourceWords).slice(0, safeLimit);
   quizState.currentIndex = 0;
   quizState.correctCount = 0;
   quizState.answerHistory = [];
-  quizState.answered = false;
-  quizState.mode = mode;
+  quizState.currentAnswered = false;
+  quizState.isInterrupted = false;
+  quizState.totalPlannedQuestions = safeLimit;
+  quizState.startedAt = Date.now();
 
-  showQuizScreen();
+  navigateToScreen("quiz", {
+    historyAction,
+    from: currentScreenName,
+    focus: false
+  });
   renderQuestion();
 }
 
 function startSelectedQuiz() {
-  startQuiz(words, getSelectedQuestionCount(), "normal");
+  const configuration = getSelectedQuizConfiguration();
+  startQuiz(words, configuration.questionLimit, "normal", {
+    historyAction: "push",
+    originalMode: configuration.originalMode
+  });
 }
 
 function startSavedMistakesReview() {
   const reviewQuestions = getSavedMistakeQuestions();
-  startQuiz(reviewQuestions, reviewQuestions.length, "review");
+  startQuiz(reviewQuestions, reviewQuestions.length, "review", {
+    historyAction: "push",
+    originalMode: "review"
+  });
 }
 
 function startCurrentMistakesReview() {
@@ -251,7 +423,24 @@ function startCurrentMistakesReview() {
       .map((answer) => answer.word)
   );
   const reviewQuestions = quizState.questions.filter((question) => incorrectWords.has(question.word));
-  startQuiz(reviewQuestions, reviewQuestions.length, "review");
+  startQuiz(reviewQuestions, reviewQuestions.length, "review", {
+    historyAction: "replace",
+    originalMode: "review"
+  });
+}
+
+function retryQuiz() {
+  startQuiz(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
+    historyAction: "replace",
+    originalMode: quizState.originalMode
+  });
+}
+
+function restartCurrentQuiz() {
+  startQuiz(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
+    historyAction: "replace",
+    originalMode: quizState.originalMode
+  });
 }
 
 function renderQuestion() {
@@ -260,7 +449,7 @@ function renderQuestion() {
   const totalQuestions = quizState.questions.length;
 
   speechController.cancel();
-  quizState.answered = false;
+  quizState.currentAnswered = false;
   elements.currentNumber.textContent = String(currentNumber);
   elements.totalNumber.textContent = String(totalQuestions);
   elements.correctCount.textContent = String(quizState.correctCount);
@@ -285,7 +474,7 @@ function renderQuestion() {
   elements.nextButton.hidden = true;
   elements.nextButton.textContent = currentNumber === totalQuestions ? "結果を見る" : "次の問題";
 
-  requestAnimationFrame(() => elements.answerInput.focus());
+  requestAnimationFrame(() => elements.answerInput.focus({ preventScroll: true }));
 }
 
 function revealHint() {
@@ -297,7 +486,7 @@ function revealHint() {
 function submitAnswer(event) {
   event.preventDefault();
 
-  if (quizState.answered) {
+  if (quizState.currentAnswered) {
     moveToNextQuestion();
     return;
   }
@@ -339,19 +528,19 @@ function recordAnswer(question, userAnswer, wasCorrect, skipped) {
 }
 
 function showAnswerResult(wasCorrect, skipped = false, userAnswer = "") {
-  if (quizState.answered) {
+  if (quizState.currentAnswered) {
     return;
   }
 
   const question = quizState.questions[quizState.currentIndex];
-  quizState.answered = true;
+  quizState.currentAnswered = true;
   recordAnswer(question, userAnswer, wasCorrect, skipped);
 
   if (wasCorrect) {
     quizState.correctCount += 1;
   }
 
-  updateSavedMistake(question.word, wasCorrect);
+  updateStoredMistakes(question.word, wasCorrect);
   elements.correctCount.textContent = String(quizState.correctCount);
   elements.progressBar.setAttribute("aria-valuenow", String(quizState.currentIndex + 1));
   elements.progressFill.style.width = `${((quizState.currentIndex + 1) / quizState.questions.length) * 100}%`;
@@ -374,17 +563,41 @@ function skipQuestion() {
 }
 
 function moveToNextQuestion() {
-  if (!quizState.answered) {
+  if (!quizState.currentAnswered) {
     return;
   }
 
   if (quizState.currentIndex >= quizState.questions.length - 1) {
-    showResultScreen();
+    finishQuizAsCompleted();
     return;
   }
 
   quizState.currentIndex += 1;
   renderQuestion();
+}
+
+function finishQuizAsCompleted() {
+  quizState.isInterrupted = false;
+  navigateToScreen("result", {
+    historyAction: "replace",
+    from: "quiz",
+    focus: true
+  });
+}
+
+function finishQuizAsInterrupted(options = {}) {
+  const { focus = true } = options;
+  if (quizState.answerHistory.length === 0) {
+    replaceHistoryWithHome({ focus });
+    return;
+  }
+
+  quizState.isInterrupted = true;
+  navigateToScreen("result", {
+    historyAction: "replace",
+    from: "quiz",
+    focus
+  });
 }
 
 function createResultDetail(labelText, valueText, options = {}) {
@@ -408,7 +621,7 @@ function createResultDetail(labelText, valueText, options = {}) {
 function renderResultList() {
   elements.resultList.replaceChildren();
 
-  quizState.answerHistory.forEach((answer) => {
+  quizState.answerHistory.forEach((answer, index) => {
     const item = document.createElement("li");
     const header = document.createElement("div");
     const questionNumber = document.createElement("p");
@@ -427,7 +640,7 @@ function renderResultList() {
     details.className = "result-details";
     pronunciationButton.className = "pronunciation-button pronunciation-button-small";
 
-    questionNumber.textContent = `問題 ${answer.questionNumber}`;
+    questionNumber.textContent = `解答 ${index + 1}`;
     status.textContent = answer.isCorrect ? "正解" : "不正解";
     header.append(questionNumber, status);
 
@@ -445,14 +658,6 @@ function renderResultList() {
     item.append(header, details, pronunciationButton);
     elements.resultList.append(item);
   });
-}
-
-function retryQuiz() {
-  startQuiz(quizState.sourceWords, quizState.questionLimit, quizState.mode);
-}
-
-function restartCurrentQuiz() {
-  startQuiz(quizState.sourceWords, quizState.questionLimit, quizState.mode);
 }
 
 function normalizeSearchText(value) {
@@ -554,9 +759,9 @@ function closeExitDialog(restoreFocus = true) {
   focusBeforeDialog = null;
 }
 
-function handleQuizHomeRequest() {
+function requestExitQuiz() {
   if (quizState.answerHistory.length === 0) {
-    showHomeScreen();
+    replaceHistoryWithHome();
     return;
   }
 
@@ -565,7 +770,7 @@ function handleQuizHomeRequest() {
 
 function confirmQuizExit() {
   closeExitDialog(false);
-  showHomeScreen();
+  finishQuizAsInterrupted();
 }
 
 function handleDialogKeydown(event) {
@@ -594,10 +799,72 @@ function handleDialogKeydown(event) {
   }
 }
 
+function navigateHomeFromWordList() {
+  const state = history.state;
+  const canGoBackToAppHome =
+    state?.app === HISTORY_APP_ID &&
+    state.screen === "wordList" &&
+    state.from === "home";
+
+  if (canGoBackToAppHome) {
+    history.back();
+  } else {
+    replaceHistoryWithHome();
+  }
+}
+
+function navigateHomeFromResult() {
+  replaceHistoryWithHome();
+}
+
+function keepAnswerControlsVisible() {
+  if (!window.matchMedia("(max-width: 768px)").matches) {
+    return;
+  }
+
+  window.clearTimeout(inputFocusScrollTimer);
+  inputFocusScrollTimer = window.setTimeout(() => {
+    try {
+      elements.answerInput.scrollIntoView({
+        behavior: "auto",
+        block: "center",
+        inline: "nearest"
+      });
+    } catch (error) {
+      elements.answerInput.scrollIntoView();
+    }
+  }, 250);
+}
+
+function handlePopState(event) {
+  const targetScreen =
+    event.state?.app === HISTORY_APP_ID
+      ? event.state.screen
+      : getScreenFromHash();
+
+  if (currentScreenName === "quiz" && targetScreen !== "quiz") {
+    if (quizState.answerHistory.length > 0) {
+      finishQuizAsInterrupted({ focus: false });
+    } else {
+      resetQuizState();
+      renderScreenFromHistory(targetScreen, { focus: false });
+    }
+    return;
+  }
+
+  renderScreenFromHistory(targetScreen, { focus: false });
+}
+
 elements.startButton.addEventListener("click", startSelectedQuiz);
 elements.homeReviewButton.addEventListener("click", startSavedMistakesReview);
-elements.wordListButton.addEventListener("click", showWordListScreen);
-elements.quizHomeButton.addEventListener("click", handleQuizHomeRequest);
+elements.wordListButton.addEventListener("click", () => {
+  navigateToScreen("wordList", {
+    historyAction: "push",
+    from: "home",
+    focus: true
+  });
+});
+elements.quizHomeButton.addEventListener("click", requestExitQuiz);
 elements.answerForm.addEventListener("submit", submitAnswer);
 elements.quizPronunciationButton.addEventListener("click", () => {
   const question = quizState.questions[quizState.currentIndex];
@@ -611,8 +878,8 @@ elements.nextButton.addEventListener("click", moveToNextQuestion);
 elements.restartButton.addEventListener("click", restartCurrentQuiz);
 elements.retryButton.addEventListener("click", retryQuiz);
 elements.resultReviewButton.addEventListener("click", startCurrentMistakesReview);
-elements.resultHomeButton.addEventListener("click", showHomeScreen);
-elements.wordListHomeButton.addEventListener("click", showHomeScreen);
+elements.resultHomeButton.addEventListener("click", navigateHomeFromResult);
+elements.wordListHomeButton.addEventListener("click", navigateHomeFromWordList);
 elements.wordSearch.addEventListener("input", updateWordSearch);
 elements.confirmExitButton.addEventListener("click", confirmQuizExit);
 elements.cancelExitButton.addEventListener("click", () => closeExitDialog());
@@ -622,6 +889,7 @@ elements.exitDialog.addEventListener("click", (event) => {
   }
 });
 elements.exitDialog.addEventListener("keydown", handleDialogKeydown);
+elements.answerInput.addEventListener("focus", keepAnswerControlsVisible);
 elements.answerInput.addEventListener("input", () => {
   if (normalizeAnswer(elements.answerInput.value) !== "") {
     elements.inputError.hidden = true;
@@ -631,7 +899,7 @@ elements.answerInput.addEventListener("input", () => {
 elements.answerInput.addEventListener("keydown", (event) => {
   if (
     event.key === "Enter" &&
-    !quizState.answered &&
+    !quizState.currentAnswered &&
     !event.isComposing &&
     event.keyCode !== 229
   ) {
@@ -643,7 +911,7 @@ elements.answerInput.addEventListener("keydown", (event) => {
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "Enter" &&
-    quizState.answered &&
+    quizState.currentAnswered &&
     elements.exitDialog.hidden &&
     !elements.screens.quiz.hidden &&
     !event.isComposing &&
@@ -653,6 +921,7 @@ document.addEventListener("keydown", (event) => {
     moveToNextQuestion();
   }
 });
+window.addEventListener("popstate", handlePopState);
 
 updateSpeechAvailability();
-updateHomeReviewControls();
+initializeHistory();

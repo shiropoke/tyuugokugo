@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="拼音を見て、対応する簡体字を答える中国語学習クイズです。">
+    <link rel="icon" href="data:,">
     <title>中国語 拼音クイズ</title>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
     <main class="app-shell">
-      <section id="home-screen" class="screen card" aria-labelledby="home-title">
+      <section id="home-screen" class="screen home-screen card" aria-labelledby="home-title">
         <p class="eyebrow">PINYIN PRACTICE</p>
         <h1 id="home-title">中国語 拼音クイズ</h1>
         <p class="lead">表示された拼音に対応する中国語を入力してください</p>
@@ -44,18 +45,17 @@
         <p id="saved-mistakes-note" class="saved-note" hidden></p>
       </section>
 
-      <section id="quiz-screen" class="screen card" aria-labelledby="quiz-title" hidden>
-        <div class="screen-top-actions">
+      <section id="quiz-screen" class="screen quiz-layout" aria-labelledby="quiz-title" hidden>
+        <header class="quiz-topbar">
           <button id="quiz-home-button" class="button button-quiet button-compact" type="button">
             ホームに戻る
           </button>
-        </div>
-        <h1 id="quiz-title" class="visually-hidden">中国語 拼音クイズ</h1>
-
-        <div class="quiz-status" aria-label="クイズの進行状況">
-          <p><span id="current-number">1</span> / <span id="total-number">10</span> 問</p>
-          <p>正解 <strong id="correct-count">0</strong> 問</p>
-        </div>
+          <h1 id="quiz-title" class="visually-hidden">中国語 拼音クイズ</h1>
+          <div class="quiz-status" aria-label="クイズの進行状況">
+            <p><span id="current-number">1</span> / <span id="total-number">10</span> 問</p>
+            <p>正解 <strong id="correct-count">0</strong> 問</p>
+          </div>
+        </header>
         <div
           id="progress-bar"
           class="progress"
@@ -68,9 +68,12 @@
           <span id="progress-fill"></span>
         </div>
 
-        <div class="prompt-area">
+        <section class="quiz-question-area" aria-labelledby="pinyin">
           <p class="prompt-label">この拼音の中国語は？</p>
           <p id="pinyin" class="pinyin" lang="zh-Latn">lǐtáng</p>
+        </section>
+
+        <section class="quiz-tools" aria-label="ヒントと発音">
           <div class="prompt-actions">
             <button id="quiz-pronunciation-button" class="pronunciation-button" type="button">
               🔊 発音を聞く
@@ -81,9 +84,9 @@
           </div>
           <p id="quiz-speech-message" class="support-message" data-speech-message hidden></p>
           <p id="hint-text" class="hint" hidden></p>
-        </div>
+        </section>
 
-        <form id="answer-form" novalidate>
+        <form id="answer-form" class="answer-section" novalidate>
           <label for="answer-input">中国語（簡体字）</label>
           <input
             id="answer-input"
@@ -104,7 +107,7 @@
           </div>
         </form>
 
-        <div id="feedback" class="feedback" aria-live="polite" aria-atomic="true" hidden>
+        <section id="feedback" class="feedback" aria-live="polite" aria-atomic="true" hidden>
           <p id="judgement" class="judgement"></p>
           <dl class="answer-details">
             <div>
@@ -116,42 +119,59 @@
               <dd id="answer-meaning"></dd>
             </div>
           </dl>
-        </div>
+        </section>
 
-        <div class="quiz-navigation">
+        <footer class="quiz-navigation">
           <button id="next-button" class="button button-primary" type="button" hidden>次の問題</button>
           <button id="restart-button" class="button button-quiet" type="button">最初からやり直す</button>
-        </div>
+        </footer>
       </section>
 
-      <section id="result-screen" class="screen screen-wide card" aria-labelledby="result-title" hidden>
+      <section id="result-screen" class="screen screen-wide content-screen" aria-labelledby="result-title" hidden>
         <p class="eyebrow">RESULT</p>
         <h1 id="result-title" tabindex="-1">クイズ結果</h1>
+        <p id="result-description" class="result-description" hidden>
+          クイズを途中で終了しました。ここまでに解答した問題の結果です。
+        </p>
 
-        <div class="score-panel">
-          <p class="score"><span id="score-percent">0</span><span class="score-unit">点</span></p>
-          <p><strong id="result-correct">0</strong> / <span id="result-total">0</span> 問正解</p>
-          <p>正答率 <strong id="result-rate">0%</strong></p>
+        <div class="result-summary" aria-label="結果の集計">
+          <div>
+            <strong id="result-answered">0</strong>
+            <span>解答済み</span>
+          </div>
+          <div>
+            <strong id="result-correct">0</strong>
+            <span>正解</span>
+          </div>
+          <div>
+            <strong id="result-incorrect">0</strong>
+            <span>不正解</span>
+          </div>
+          <div>
+            <strong id="result-rate">0%</strong>
+            <span>正答率</span>
+          </div>
         </div>
+        <p id="result-planned" class="result-planned" hidden></p>
 
         <p id="perfect-message" class="perfect-message" hidden>全問正解です！</p>
         <p id="result-speech-message" class="support-message" data-speech-message hidden></p>
 
         <section class="results" aria-labelledby="result-list-title">
-          <h2 id="result-list-title">出題された単語</h2>
+          <h2 id="result-list-title">解答した単語</h2>
           <ol id="result-list" class="result-list"></ol>
         </section>
 
         <div class="button-stack result-actions">
+          <button id="result-home-button" class="button button-quiet" type="button">ホームに戻る</button>
           <button id="retry-button" class="button button-primary" type="button">もう一度挑戦</button>
           <button id="result-review-button" class="button button-secondary" type="button" hidden>
             間違えた問題だけ復習
           </button>
-          <button id="result-home-button" class="button button-quiet" type="button">ホームに戻る</button>
         </div>
       </section>
 
-      <section id="word-list-screen" class="screen screen-wide card" aria-labelledby="word-list-title" hidden>
+      <section id="word-list-screen" class="screen screen-wide content-screen" aria-labelledby="word-list-title" hidden>
         <div class="screen-top-actions">
           <button id="word-list-home-button" class="button button-quiet button-compact" type="button">
             ホームに戻る
@@ -188,11 +208,11 @@
       hidden
     >
       <div class="dialog-panel">
-        <h2 id="exit-dialog-title">ホームに戻りますか？</h2>
-        <p id="exit-dialog-message">クイズを終了してホームに戻りますか？現在の進捗は失われます。</p>
+        <h2 id="exit-dialog-title">クイズを終了しますか？</h2>
+        <p id="exit-dialog-message">クイズを終了して、ここまでの結果を表示しますか？</p>
         <div class="dialog-actions">
-          <button id="confirm-exit-button" class="button button-primary" type="button">戻る</button>
-          <button id="cancel-exit-button" class="button button-quiet" type="button">キャンセル</button>
+          <button id="confirm-exit-button" class="button button-primary" type="button">途中結果を見る</button>
+          <button id="cancel-exit-button" class="button button-quiet" type="button">クイズを続ける</button>
         </div>
       </div>
     </div>
