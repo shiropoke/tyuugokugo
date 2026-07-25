@@ -9,9 +9,9 @@
   </head>
   <body>
     <main class="app-shell">
-      <section id="start-screen" class="screen card" aria-labelledby="start-title">
+      <section id="home-screen" class="screen card" aria-labelledby="home-title">
         <p class="eyebrow">PINYIN PRACTICE</p>
-        <h1 id="start-title">中国語 拼音クイズ</h1>
+        <h1 id="home-title">中国語 拼音クイズ</h1>
         <p class="lead">表示された拼音に対応する中国語を入力してください</p>
 
         <fieldset class="question-count">
@@ -34,14 +34,22 @@
 
         <div class="button-stack">
           <button id="start-button" class="button button-primary" type="button">クイズを始める</button>
-          <button id="start-review-button" class="button button-secondary" type="button" hidden>
-            間違えた問題だけ復習
-          </button>
+          <div class="home-secondary-actions">
+            <button id="home-review-button" class="button button-secondary" type="button" hidden>
+              間違えた問題だけ復習
+            </button>
+            <button id="word-list-button" class="button button-secondary" type="button">単語一覧を見る</button>
+          </div>
         </div>
         <p id="saved-mistakes-note" class="saved-note" hidden></p>
       </section>
 
       <section id="quiz-screen" class="screen card" aria-labelledby="quiz-title" hidden>
+        <div class="screen-top-actions">
+          <button id="quiz-home-button" class="button button-quiet button-compact" type="button">
+            ホームに戻る
+          </button>
+        </div>
         <h1 id="quiz-title" class="visually-hidden">中国語 拼音クイズ</h1>
 
         <div class="quiz-status" aria-label="クイズの進行状況">
@@ -63,9 +71,15 @@
         <div class="prompt-area">
           <p class="prompt-label">この拼音の中国語は？</p>
           <p id="pinyin" class="pinyin" lang="zh-Latn">lǐtáng</p>
-          <button id="hint-button" class="text-button" type="button" aria-expanded="false">
-            日本語のヒントを見る
-          </button>
+          <div class="prompt-actions">
+            <button id="quiz-pronunciation-button" class="pronunciation-button" type="button">
+              🔊 発音を聞く
+            </button>
+            <button id="hint-button" class="text-button" type="button" aria-expanded="false">
+              日本語のヒントを見る
+            </button>
+          </div>
+          <p id="quiz-speech-message" class="support-message" data-speech-message hidden></p>
           <p id="hint-text" class="hint" hidden></p>
         </div>
 
@@ -110,7 +124,7 @@
         </div>
       </section>
 
-      <section id="result-screen" class="screen card" aria-labelledby="result-title" hidden>
+      <section id="result-screen" class="screen screen-wide card" aria-labelledby="result-title" hidden>
         <p class="eyebrow">RESULT</p>
         <h1 id="result-title" tabindex="-1">クイズ結果</h1>
 
@@ -120,26 +134,74 @@
           <p>正答率 <strong id="result-rate">0%</strong></p>
         </div>
 
-        <section id="mistakes-section" class="mistakes" aria-labelledby="mistakes-title">
-          <h2 id="mistakes-title">間違えた問題</h2>
-          <ul id="mistakes-list"></ul>
-        </section>
-        <p id="perfect-message" class="perfect-message" hidden>全問正解です。よくできました！</p>
+        <p id="perfect-message" class="perfect-message" hidden>全問正解です！</p>
+        <p id="result-speech-message" class="support-message" data-speech-message hidden></p>
 
-        <div class="button-stack">
+        <section class="results" aria-labelledby="result-list-title">
+          <h2 id="result-list-title">出題された単語</h2>
+          <ol id="result-list" class="result-list"></ol>
+        </section>
+
+        <div class="button-stack result-actions">
           <button id="retry-button" class="button button-primary" type="button">もう一度挑戦</button>
           <button id="result-review-button" class="button button-secondary" type="button" hidden>
             間違えた問題だけ復習
           </button>
-          <button id="back-button" class="button button-quiet" type="button">スタート画面に戻る</button>
+          <button id="result-home-button" class="button button-quiet" type="button">ホームに戻る</button>
         </div>
       </section>
+
+      <section id="word-list-screen" class="screen screen-wide card" aria-labelledby="word-list-title" hidden>
+        <div class="screen-top-actions">
+          <button id="word-list-home-button" class="button button-quiet button-compact" type="button">
+            ホームに戻る
+          </button>
+        </div>
+        <p class="eyebrow">WORD LIST</p>
+        <h1 id="word-list-title" tabindex="-1">単語一覧</h1>
+        <p class="lead word-list-lead">クイズに登録されている全77項目を確認できます。</p>
+
+        <div class="search-area">
+          <label for="word-search">中国語・拼音・日本語の意味を検索</label>
+          <input
+            id="word-search"
+            class="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="例：礼堂、lǐtáng、講堂"
+          >
+          <p id="search-result-count" class="search-result-count" aria-live="polite" aria-atomic="true"></p>
+        </div>
+        <p id="word-list-speech-message" class="support-message" data-speech-message hidden></p>
+        <p id="no-search-results" class="empty-message" hidden>該当する単語がありません</p>
+        <ul id="word-list" class="word-list"></ul>
+      </section>
     </main>
+
+    <div
+      id="exit-dialog"
+      class="dialog-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="exit-dialog-title"
+      aria-describedby="exit-dialog-message"
+      hidden
+    >
+      <div class="dialog-panel">
+        <h2 id="exit-dialog-title">ホームに戻りますか？</h2>
+        <p id="exit-dialog-message">クイズを終了してホームに戻りますか？現在の進捗は失われます。</p>
+        <div class="dialog-actions">
+          <button id="confirm-exit-button" class="button button-primary" type="button">戻る</button>
+          <button id="cancel-exit-button" class="button button-quiet" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
 
     <noscript>
       <p class="noscript-message">このクイズを利用するにはJavaScriptを有効にしてください。</p>
     </noscript>
     <script src="./words.js"></script>
+    <script src="./speech.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>
