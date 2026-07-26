@@ -179,6 +179,41 @@
             日本語の文章を見て、対応する中国語の文章を入力します。
           </p>
 
+          <fieldset class="learning-mode grammar-learning-mode">
+            <legend>学習モード</legend>
+            <div class="mode-choice-grid grammar-mode-choice-grid">
+              <label class="mode-choice">
+                <input
+                  type="radio"
+                  name="grammar-learning-mode"
+                  value="grammar-input"
+                  aria-describedby="grammar-input-mode-description"
+                  checked
+                >
+                <span>
+                  <strong>日本語→中国語</strong>
+                  <small id="grammar-input-mode-description">
+                    日本語の文章を見て、対応する中国語の文章を入力します。
+                  </small>
+                </span>
+              </label>
+              <label class="mode-choice">
+                <input
+                  type="radio"
+                  name="grammar-learning-mode"
+                  value="grammar-review"
+                  aria-describedby="grammar-review-mode-description"
+                >
+                <span>
+                  <strong>確認モード</strong>
+                  <small id="grammar-review-mode-description">
+                    日本語の文章を見て、中国語の文章と発音を確認しながら学習します。
+                  </small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
           <fieldset class="lesson-selector">
             <legend>出題する課</legend>
             <div class="lesson-choice-grid">
@@ -261,9 +296,14 @@
             </div>
           </fieldset>
 
-          <button id="grammar-start-button" class="button button-primary" type="button">
-            文法クイズを始める
-          </button>
+          <div class="button-stack">
+            <button id="grammar-start-button" class="button button-primary" type="button">
+              文法クイズを始める
+            </button>
+            <button id="grammar-sentence-list-button" class="button button-secondary" type="button">
+              文章一覧を見る
+            </button>
+          </div>
         </section>
       </section>
 
@@ -432,7 +472,10 @@
               <span id="grammar-current-number">1</span> /
               <span id="grammar-total-number">10</span> 問
             </p>
-            <p>正解 <strong id="grammar-correct-count">0</strong> 問</p>
+            <p id="grammar-score-status">
+              正解 <strong id="grammar-correct-count">0</strong> 問
+            </p>
+            <p id="grammar-review-status" hidden>確認モード</p>
           </div>
           <div id="grammar-quiz-menu" class="quiz-menu">
             <button
@@ -475,6 +518,58 @@
         >
           <h2 id="grammar-prompt-label" class="prompt-label">この日本語を中国語にしてください</h2>
           <p id="grammar-japanese-question" class="grammar-question" lang="ja"></p>
+        </section>
+
+        <section id="grammar-review-controls" class="confirmation-controls" hidden>
+          <div class="review-action-slot">
+            <button
+              id="grammar-review-primary-action"
+              class="button button-primary review-primary-action grammar-review-primary-action"
+              type="button"
+              aria-label="答えを見る"
+              aria-controls="grammar-review-answer"
+              aria-expanded="false"
+            >
+              答えを見る
+            </button>
+          </div>
+          <section
+            id="grammar-review-answer"
+            class="confirmation-answer grammar-review-answer"
+            aria-live="polite"
+            aria-atomic="true"
+            hidden
+          >
+            <dl class="confirmation-details">
+              <div>
+                <dt>中国語</dt>
+                <dd id="grammar-review-chinese" class="chinese-text" lang="zh-CN"></dd>
+              </div>
+              <div>
+                <dt>日本語</dt>
+                <dd id="grammar-review-japanese"></dd>
+              </div>
+              <div>
+                <dt>出題情報</dt>
+                <dd id="grammar-review-context"></dd>
+              </div>
+            </dl>
+            <button
+              id="grammar-review-pronunciation-button"
+              class="pronunciation-button grammar-pronunciation-button"
+              type="button"
+              aria-label="中国語文の発音を聞く"
+              hidden
+            >
+              発音を聞く
+            </button>
+            <p
+              id="grammar-review-speech-message"
+              class="support-message"
+              data-speech-message
+              hidden
+            ></p>
+          </section>
         </section>
 
         <form id="grammar-answer-form" class="answer-section" novalidate>
@@ -547,7 +642,7 @@
           <p id="grammar-speech-message" class="support-message" data-speech-message hidden></p>
         </section>
 
-        <footer class="quiz-navigation">
+        <footer id="grammar-quiz-navigation" class="quiz-navigation">
           <button id="grammar-next-button" class="button button-primary" type="button" hidden>
             次の問題
           </button>
@@ -720,6 +815,143 @@
             もう一度挑戦
           </button>
         </div>
+      </section>
+
+      <section
+        id="grammar-review-result-screen"
+        class="screen screen-wide content-screen"
+        aria-labelledby="grammar-review-result-title"
+        hidden
+      >
+        <div class="screen-top-actions">
+          <button
+            id="grammar-review-result-home-top-button"
+            class="button button-quiet button-compact"
+            type="button"
+          >
+            ホームに戻る
+          </button>
+        </div>
+        <h1 id="grammar-review-result-title" tabindex="-1">文法確認完了</h1>
+        <p id="grammar-review-result-description" class="result-description" hidden>
+          確認モードを途中で終了しました。ここまでに確認した文章の一覧です。
+        </p>
+
+        <div class="review-summary" aria-label="文法確認結果の集計">
+          <div>
+            <strong id="grammar-reviewed-count">0</strong>
+            <span>確認済み文章数</span>
+          </div>
+          <div>
+            <strong id="grammar-review-planned-count">0</strong>
+            <span>予定文章数</span>
+          </div>
+        </div>
+        <div class="session-meta" aria-label="文法確認の条件">
+          <p id="grammar-review-result-target-lessons">対象：全課</p>
+          <p id="grammar-review-result-question-count">予定文章数：0件</p>
+        </div>
+        <p
+          id="grammar-review-result-speech-message"
+          class="support-message"
+          data-speech-message
+          hidden
+        ></p>
+
+        <section class="results" aria-labelledby="grammar-review-result-list-title">
+          <h2 id="grammar-review-result-list-title">確認した文章</h2>
+          <ol
+            id="grammar-review-result-list"
+            class="result-list review-result-list"
+          ></ol>
+        </section>
+
+        <div class="button-stack result-actions">
+          <button
+            id="grammar-review-result-home-button"
+            class="button button-quiet"
+            type="button"
+          >
+            ホームに戻る
+          </button>
+          <button
+            id="grammar-review-retry-button"
+            class="button button-primary"
+            type="button"
+          >
+            もう一度確認する
+          </button>
+          <button
+            id="grammar-review-to-quiz-button"
+            class="button button-secondary"
+            type="button"
+          >
+            確認した文章で文法クイズをする
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="grammar-sentence-list-screen"
+        class="screen screen-wide content-screen"
+        aria-labelledby="grammar-sentence-list-title"
+        hidden
+      >
+        <div class="screen-top-actions">
+          <button
+            id="grammar-sentence-list-home-button"
+            class="button button-quiet button-compact"
+            type="button"
+          >
+            ホームに戻る
+          </button>
+        </div>
+        <p class="eyebrow">GRAMMAR SENTENCES</p>
+        <h1 id="grammar-sentence-list-title" tabindex="-1">文章一覧</h1>
+        <p class="lead grammar-sentence-list-lead">
+          第1課から第6課までの中国語文と日本語訳を確認できます。
+        </p>
+
+        <div class="search-area">
+          <label for="grammar-sentence-lesson-filter">課で絞り込む</label>
+          <select id="grammar-sentence-lesson-filter" class="lesson-filter">
+            <option value="all">全課</option>
+            <option value="1">第1課</option>
+            <option value="2">第2課</option>
+            <option value="3">第3課</option>
+            <option value="4">第4課</option>
+            <option value="5">第5課</option>
+            <option value="6">第6課</option>
+          </select>
+          <label for="grammar-sentence-search">
+            中国語・日本語・課・POINTを検索
+          </label>
+          <input
+            id="grammar-sentence-search"
+            class="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="例：携帯電話、我的手机、第1課、POINT 2"
+          >
+          <p
+            id="grammar-sentence-result-count"
+            class="search-result-count"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            表示中：73件
+          </p>
+        </div>
+        <p
+          id="grammar-sentence-list-speech-message"
+          class="support-message"
+          data-speech-message
+          hidden
+        ></p>
+        <p id="grammar-sentence-empty-message" class="empty-message" hidden>
+          該当する文章がありません。
+        </p>
+        <div id="grammar-sentence-list" class="grammar-sentence-list"></div>
       </section>
 
       <section id="word-list-screen" class="screen screen-wide content-screen" aria-labelledby="word-list-title" hidden>

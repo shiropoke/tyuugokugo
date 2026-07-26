@@ -104,7 +104,11 @@ const SCREEN_HASHES = {
   result: "#result",
   reviewResult: "#confirmation-result",
   grammarQuiz: "#grammar-quiz",
+  grammarReview: "#grammar-review",
   grammarResult: "#grammar-result",
+  grammarReviewComplete: "#grammar-review-complete",
+  grammarReviewInterrupted: "#grammar-review-interrupted",
+  grammarSentenceList: "#grammar-sentences",
   wordList: "#words",
   toneChart: "#tones"
 };
@@ -116,7 +120,11 @@ const elements = {
     result: document.querySelector("#result-screen"),
     reviewResult: document.querySelector("#review-result-screen"),
     grammarQuiz: document.querySelector("#grammar-quiz-screen"),
+    grammarReview: document.querySelector("#grammar-quiz-screen"),
     grammarResult: document.querySelector("#grammar-result-screen"),
+    grammarReviewComplete: document.querySelector("#grammar-review-result-screen"),
+    grammarReviewInterrupted: document.querySelector("#grammar-review-result-screen"),
+    grammarSentenceList: document.querySelector("#grammar-sentence-list-screen"),
     wordList: document.querySelector("#word-list-screen"),
     toneChart: document.querySelector("#tone-chart-screen")
   },
@@ -616,8 +624,9 @@ function showOnlyScreen(screenName) {
     closeConfirmDialog(false);
   }
 
-  Object.entries(elements.screens).forEach(([name, screen]) => {
-    screen.hidden = name !== screenName;
+  const activeScreen = elements.screens[screenName];
+  new Set(Object.values(elements.screens)).forEach((screen) => {
+    screen.hidden = screen !== activeScreen;
   });
 
   currentScreenName = screenName;
@@ -894,13 +903,33 @@ function renderScreenFromHistory(screenName, options = {}) {
     showWordListScreen({ focus, resetSearch: true });
   } else if (screenName === "toneChart") {
     showToneChartScreen({ focus });
-  } else if (screenName === "grammarQuiz" && window.grammarApp?.state.questions.length > 0) {
+  } else if (screenName === "grammarSentenceList") {
+    window.grammarApp?.showSentenceListScreen({
+      focus,
+      resetFilters: true
+    });
+  } else if (
+    screenName === "grammarReview" &&
+    window.grammarApp?.state.questions.length > 0
+  ) {
+    window.grammarApp.showQuizScreen();
+  } else if (
+    screenName === "grammarQuiz" &&
+    window.grammarApp?.state.questions.length > 0
+  ) {
     window.grammarApp.showQuizScreen();
   } else if (
     screenName === "grammarResult" &&
     window.grammarApp?.state.answerHistory.length > 0
   ) {
     window.grammarApp.showResultScreen({ focus });
+  } else if (
+    ["grammarReviewComplete", "grammarReviewInterrupted"].includes(
+      screenName
+    ) &&
+    window.grammarApp?.state.reviewedHistory.length > 0
+  ) {
+    window.grammarApp.showReviewResultScreen({ focus });
   } else if (screenName === "quiz" && quizState.questions.length > 0) {
     showQuizScreen();
   } else if (screenName === "result" && quizState.answerHistory.length > 0) {
@@ -963,7 +992,16 @@ function initializeHistory() {
   let initialScreen = stateScreen || getScreenFromHash();
 
   if (
-    ["quiz", "result", "reviewResult", "grammarQuiz", "grammarResult"].includes(initialScreen)
+    [
+      "quiz",
+      "result",
+      "reviewResult",
+      "grammarQuiz",
+      "grammarReview",
+      "grammarResult",
+      "grammarReviewComplete",
+      "grammarReviewInterrupted"
+    ].includes(initialScreen)
   ) {
     initialScreen = "home";
   }
@@ -1843,7 +1881,10 @@ function handlePopState(event) {
       ? event.state.screen
       : getScreenFromHash();
 
-  if (currentScreenName === "grammarQuiz" && targetScreen !== "grammarQuiz") {
+  if (
+    ["grammarQuiz", "grammarReview"].includes(currentScreenName) &&
+    targetScreen !== currentScreenName
+  ) {
     window.grammarApp?.handlePopStateExit(targetScreen);
     return;
   }

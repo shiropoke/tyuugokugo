@@ -34,7 +34,7 @@ const speechController = (() => {
       return;
     }
 
-    button.textContent = button.dataset.defaultLabel || "🔊 発音を聞く";
+    button.textContent = button.dataset.defaultLabel || "発音を聞く";
     button.removeAttribute("aria-busy");
   }
 
@@ -79,7 +79,7 @@ const speechController = (() => {
 
       activeButton = button;
       activeUtterance = utterance;
-      button.textContent = "🔊 再生中…";
+      button.textContent = "再生中…";
       button.setAttribute("aria-busy", "true");
 
       utterance.addEventListener("end", () => resetActiveSpeech(utterance));
