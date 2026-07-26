@@ -273,7 +273,18 @@
         </section>
 
         <section id="confirmation-controls" class="confirmation-controls" hidden>
-          <button id="show-answer-button" class="button button-primary" type="button">答えを見る</button>
+          <div class="review-action-slot">
+            <button
+              id="review-primary-action"
+              class="button button-primary review-primary-action"
+              type="button"
+              aria-label="答えを見る"
+              aria-controls="confirmation-answer"
+              aria-expanded="false"
+            >
+              答えを見る
+            </button>
+          </div>
           <div
             id="confirmation-answer"
             class="confirmation-answer"
@@ -296,9 +307,6 @@
               </div>
             </dl>
           </div>
-          <button id="confirmation-next-button" class="button button-primary" type="button" hidden>
-            次の単語
-          </button>
         </section>
 
         <footer id="quiz-navigation" class="quiz-navigation">
@@ -307,7 +315,11 @@
       </section>
 
       <section id="result-screen" class="screen screen-wide content-screen" aria-labelledby="result-title" hidden>
-        <p class="eyebrow">RESULT</p>
+        <div class="screen-top-actions">
+          <button id="result-home-top-button" class="button button-quiet button-compact" type="button">
+            ホームに戻る
+          </button>
+        </div>
         <h1 id="result-title" tabindex="-1">クイズ結果</h1>
         <p id="result-description" class="result-description" hidden>
           クイズを途中で終了しました。ここまでに解答した問題の結果です。
@@ -361,7 +373,15 @@
         aria-labelledby="review-result-title"
         hidden
       >
-        <p class="eyebrow">CONFIRMATION</p>
+        <div class="screen-top-actions">
+          <button
+            id="review-result-home-top-button"
+            class="button button-quiet button-compact"
+            type="button"
+          >
+            ホームに戻る
+          </button>
+        </div>
         <h1 id="review-result-title" tabindex="-1">確認完了</h1>
         <p id="review-result-description" class="result-description" hidden>
           確認モードを途中で終了しました。ここまでに確認した単語の一覧です。

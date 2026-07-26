@@ -161,13 +161,13 @@ const elements = {
   feedbackUserAnswer: document.querySelector("#feedback-user-answer"),
   nextButton: document.querySelector("#next-button"),
   confirmationControls: document.querySelector("#confirmation-controls"),
-  showAnswerButton: document.querySelector("#show-answer-button"),
+  reviewPrimaryAction: document.querySelector("#review-primary-action"),
   confirmationAnswer: document.querySelector("#confirmation-answer"),
   confirmationPinyin: document.querySelector("#confirmation-pinyin"),
   confirmationWord: document.querySelector("#confirmation-word"),
   confirmationMeaning: document.querySelector("#confirmation-meaning"),
-  confirmationNextButton: document.querySelector("#confirmation-next-button"),
   quizNavigation: document.querySelector("#quiz-navigation"),
+  resultHomeTopButton: document.querySelector("#result-home-top-button"),
   resultTitle: document.querySelector("#result-title"),
   resultDescription: document.querySelector("#result-description"),
   resultAnswered: document.querySelector("#result-answered"),
@@ -183,6 +183,7 @@ const elements = {
   retryButton: document.querySelector("#retry-button"),
   resultReviewButton: document.querySelector("#result-review-button"),
   resultHomeButton: document.querySelector("#result-home-button"),
+  reviewResultHomeTopButton: document.querySelector("#review-result-home-top-button"),
   reviewResultTitle: document.querySelector("#review-result-title"),
   reviewResultDescription: document.querySelector("#review-result-description"),
   reviewedCount: document.querySelector("#reviewed-count"),
@@ -1175,15 +1176,12 @@ function renderQuestion() {
   elements.feedbackUserAnswer.textContent = "";
 
   if (confirmationMode) {
-    elements.showAnswerButton.hidden = false;
     elements.confirmationAnswer.hidden = true;
-    elements.confirmationNextButton.hidden = true;
-    elements.confirmationNextButton.textContent =
-      currentNumber === totalQuestions ? "確認を終了する" : "次の単語";
     elements.confirmationPinyin.textContent = "";
     elements.confirmationWord.textContent = "";
     elements.confirmationMeaning.textContent = "";
-    requestAnimationFrame(() => elements.showAnswerButton.focus({ preventScroll: true }));
+    updateReviewPrimaryAction();
+    requestAnimationFrame(() => elements.reviewPrimaryAction.focus({ preventScroll: true }));
     return;
   }
 
@@ -1335,6 +1333,32 @@ function recordReviewedWord(question) {
   });
 }
 
+function isLastConfirmationQuestion() {
+  return quizState.currentIndex >= quizState.questions.length - 1;
+}
+
+function updateReviewPrimaryAction() {
+  elements.reviewPrimaryAction.setAttribute(
+    "aria-expanded",
+    String(quizState.currentAnswerVisible)
+  );
+
+  if (!quizState.currentAnswerVisible) {
+    elements.reviewPrimaryAction.textContent = "答えを見る";
+    elements.reviewPrimaryAction.setAttribute("aria-label", "答えを見る");
+    return;
+  }
+
+  const isLastQuestion = isLastConfirmationQuestion();
+  elements.reviewPrimaryAction.textContent = isLastQuestion
+    ? "確認を終了する"
+    : "次の単語";
+  elements.reviewPrimaryAction.setAttribute(
+    "aria-label",
+    isLastQuestion ? "確認を終了する" : "次の単語へ進む"
+  );
+}
+
 function revealConfirmationAnswer() {
   if (!isConfirmationMode() || quizState.currentAnswerVisible) {
     return;
@@ -1347,11 +1371,9 @@ function revealConfirmationAnswer() {
   elements.confirmationWord.textContent = question.word;
   elements.confirmationMeaning.textContent = question.meaning;
   elements.confirmationAnswer.hidden = false;
-  elements.showAnswerButton.hidden = true;
-  elements.confirmationNextButton.hidden = false;
   elements.progressBar.setAttribute("aria-valuenow", String(quizState.currentIndex + 1));
   elements.progressFill.style.width = `${((quizState.currentIndex + 1) / quizState.questions.length) * 100}%`;
-  elements.confirmationNextButton.focus();
+  updateReviewPrimaryAction();
 }
 
 function moveToNextConfirmationWord() {
@@ -1366,6 +1388,28 @@ function moveToNextConfirmationWord() {
 
   quizState.currentIndex += 1;
   renderQuestion();
+}
+
+function handleReviewPrimaryAction() {
+  if (!isConfirmationMode()) {
+    return;
+  }
+
+  if (!quizState.currentAnswerVisible) {
+    revealConfirmationAnswer();
+    return;
+  }
+
+  moveToNextConfirmationWord();
+}
+
+function handleReviewPrimaryActionKeydown(event) {
+  if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") {
+    return;
+  }
+
+  event.preventDefault();
+  handleReviewPrimaryAction();
 }
 
 function finishQuizAsCompleted() {
@@ -1843,11 +1887,13 @@ elements.quizPronunciationButton.addEventListener("click", () => {
 elements.hintButton.addEventListener("click", revealHint);
 elements.skipButton.addEventListener("click", skipQuestion);
 elements.nextButton.addEventListener("click", moveToNextQuestion);
-elements.showAnswerButton.addEventListener("click", revealConfirmationAnswer);
-elements.confirmationNextButton.addEventListener("click", moveToNextConfirmationWord);
+elements.reviewPrimaryAction.addEventListener("click", handleReviewPrimaryAction);
+elements.reviewPrimaryAction.addEventListener("keydown", handleReviewPrimaryActionKeydown);
 elements.retryButton.addEventListener("click", retryQuiz);
 elements.resultReviewButton.addEventListener("click", startCurrentMistakesReview);
+elements.resultHomeTopButton.addEventListener("click", navigateHomeFromResult);
 elements.resultHomeButton.addEventListener("click", navigateHomeFromResult);
+elements.reviewResultHomeTopButton.addEventListener("click", navigateHomeFromResult);
 elements.reviewResultHomeButton.addEventListener("click", navigateHomeFromResult);
 elements.reviewRetryButton.addEventListener("click", retryConfirmation);
 elements.reviewToQuizButton.addEventListener("click", startQuizFromReviewedWords);

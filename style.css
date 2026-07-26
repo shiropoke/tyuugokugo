@@ -748,6 +748,18 @@ form label {
   padding: 22px 0;
 }
 
+.review-action-slot {
+  width: 100%;
+  min-height: 50px;
+}
+
+.review-primary-action {
+  width: 100%;
+  min-height: 50px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 .confirmation-answer {
   padding: 18px;
   border: 1px solid #a9bfd1;
