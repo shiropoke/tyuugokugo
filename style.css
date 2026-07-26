@@ -146,6 +146,7 @@ h2 {
   text-align: center;
 }
 
+.learning-mode,
 .question-count {
   min-width: 0;
   margin: 0 0 28px;
@@ -153,28 +154,70 @@ h2 {
   border: 0;
 }
 
+.learning-mode legend,
 .question-count legend {
   width: 100%;
   margin-bottom: 10px;
   font-weight: 700;
 }
 
-.choice-grid {
+.mode-choice-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
+.mode-choice,
 .choice {
   position: relative;
   min-width: 0;
 }
 
+.mode-choice input,
 .choice input {
   position: absolute;
   width: 1px;
   height: 1px;
   opacity: 0;
+}
+
+.mode-choice span {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.mode-choice strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--blue-dark);
+}
+
+.mode-choice small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.mode-choice input:checked + span,
+.choice input:checked + span {
+  border-color: var(--blue);
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .choice span {
@@ -190,13 +233,7 @@ h2 {
   font-weight: 650;
 }
 
-.choice input:checked + span {
-  border-color: var(--blue);
-  color: var(--blue-dark);
-  background: var(--blue-soft);
-  box-shadow: inset 0 0 0 1px var(--blue);
-}
-
+.mode-choice input:focus-visible + span,
 .choice input:focus-visible + span,
 button:focus-visible,
 input:focus-visible {
@@ -264,7 +301,7 @@ input:focus-visible {
 }
 
 .button-compact {
-  min-height: 44px;
+  min-height: 48px;
   padding: 8px 14px;
   font-size: 0.92rem;
 }
@@ -278,8 +315,7 @@ input:focus-visible {
 .quiz-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
+  gap: 12px;
   width: 100%;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
@@ -294,8 +330,10 @@ input:focus-visible {
 
 .quiz-status {
   display: flex;
+  min-width: 0;
+  flex: 1;
   align-items: baseline;
-  justify-content: flex-end;
+  justify-content: center;
   gap: clamp(12px, 4vw, 28px);
   color: var(--muted);
   font-size: 0.92rem;
@@ -304,6 +342,42 @@ input:focus-visible {
 .quiz-status p {
   margin-bottom: 0;
   white-space: nowrap;
+}
+
+.quiz-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.quiz-menu-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(240px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgb(25 48 67 / 16%);
+}
+
+.quiz-menu-item {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+  text-align: left;
+}
+
+.quiz-menu-item:hover,
+.quiz-menu-item:focus-visible {
+  background: var(--blue-soft);
 }
 
 .progress {
@@ -544,6 +618,49 @@ form label {
   border-top: 1px solid var(--border);
 }
 
+.confirmation-controls {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  padding: 22px 0;
+}
+
+.confirmation-answer {
+  padding: 18px;
+  border: 1px solid #a9bfd1;
+  border-radius: 8px;
+  background: #f5f9fc;
+}
+
+.confirmation-details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.confirmation-details div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 10px;
+}
+
+.confirmation-details dt {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.confirmation-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.confirmation-details div:nth-child(2) dd {
+  font-size: 1.35rem;
+  font-weight: 750;
+}
+
 .result-description {
   max-width: 680px;
   margin: 0 auto 24px;
@@ -579,6 +696,37 @@ form label {
 }
 
 .result-summary span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.review-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 680px;
+  margin: 28px auto 30px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.review-summary div {
+  display: grid;
+  gap: 2px;
+  padding: 18px 10px;
+  text-align: center;
+}
+
+.review-summary div + div {
+  border-left: 1px solid var(--border);
+}
+
+.review-summary strong {
+  color: var(--blue-dark);
+  font-size: clamp(1.35rem, 5vw, 2rem);
+  line-height: 1.2;
+}
+
+.review-summary span {
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -619,6 +767,12 @@ form label {
   border-color: #dfa0a0;
   border-left-color: var(--red);
   background: #fff5f5;
+}
+
+.review-result-item {
+  border-color: var(--border);
+  border-left-color: var(--blue);
+  background: #f8fafc;
 }
 
 .result-item-header {
@@ -881,6 +1035,14 @@ form label {
     gap: 0;
   }
 
+  .mode-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-choice span {
+    min-height: 88px;
+  }
+
   .choice-grid {
     gap: 7px;
   }
@@ -896,6 +1058,10 @@ form label {
   .prompt-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .confirmation-details div {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
   }
 
   .result-details {
