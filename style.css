@@ -147,6 +147,7 @@ h2 {
 }
 
 .learning-mode,
+.lesson-selector,
 .question-count {
   min-width: 0;
   margin: 0 0 28px;
@@ -155,6 +156,7 @@ h2 {
 }
 
 .learning-mode legend,
+.lesson-selector legend,
 .question-count legend {
   width: 100%;
   margin-bottom: 10px;
@@ -204,6 +206,69 @@ h2 {
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+.lesson-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.lesson-choice {
+  display: flex;
+  min-height: 52px;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.lesson-choice input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+.lesson-choice:has(input:checked) {
+  border-color: var(--blue);
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.lesson-choice-all {
+  width: 100%;
+  margin-top: 10px;
+  border-style: dashed;
+}
+
+.lesson-choice-all input:indeterminate {
+  accent-color: var(--focus);
+}
+
+.lesson-selection-summary {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #304b60;
+  background: #f2f6f9;
+  font-size: 0.9rem;
+}
+
+.lesson-selection-summary p {
+  margin-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+
+.lesson-selection-summary p:last-child {
+  margin-bottom: 0;
 }
 
 .mode-choice input:checked + span,
@@ -387,6 +452,15 @@ input:focus-visible {
   overflow: hidden;
   border-radius: 999px;
   background: #e3e9ee;
+}
+
+.target-lessons {
+  margin: 10px 0 -2px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .progress span {
@@ -738,6 +812,22 @@ form label {
   text-align: center;
 }
 
+.session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 18px;
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.session-meta p {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
 .results {
   margin-bottom: 28px;
 }
@@ -848,6 +938,19 @@ form label {
   font-weight: 700;
 }
 
+.lesson-filter {
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 18px;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid #9eacb7;
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
 .search-input {
   width: 100%;
   min-height: 52px;
@@ -886,6 +989,23 @@ form label {
   list-style: none;
 }
 
+.word-list-lesson-heading {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding: 8px 0 2px;
+  border-bottom: 2px solid var(--blue);
+}
+
+.word-list-lesson-heading:first-child {
+  margin-top: 0;
+}
+
+.word-list-lesson-heading h2 {
+  margin-bottom: 0;
+  color: var(--blue-dark);
+  font-size: 1.25rem;
+}
+
 .word-list-item {
   display: flex;
   min-width: 0;
@@ -895,6 +1015,17 @@ form label {
   border: 1px solid var(--border);
   border-radius: 9px;
   background: #fbfcfd;
+}
+
+.lesson-badge {
+  align-self: flex-start;
+  margin: 0 0 10px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .word-detail {
@@ -1045,6 +1176,19 @@ form label {
 
   .choice-grid {
     gap: 7px;
+  }
+
+  .lesson-choice-grid {
+    gap: 7px;
+  }
+
+  .lesson-choice {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+
+  .lesson-choice span {
+    white-space: nowrap;
   }
 
   .choice span {

@@ -35,6 +35,53 @@
           </div>
         </fieldset>
 
+        <fieldset class="lesson-selector">
+          <legend>出題する課</legend>
+          <div class="lesson-choice-grid">
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="1" checked>
+              <span>第1課</span>
+            </label>
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="2" checked>
+              <span>第2課</span>
+            </label>
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="3" checked>
+              <span>第3課</span>
+            </label>
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="4" checked>
+              <span>第4課</span>
+            </label>
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="5" checked>
+              <span>第5課</span>
+            </label>
+            <label class="lesson-choice">
+              <input type="checkbox" name="lesson" value="6" checked>
+              <span>第6課</span>
+            </label>
+          </div>
+          <label class="lesson-choice lesson-choice-all">
+            <input id="all-lessons-checkbox" type="checkbox" checked>
+            <span>全課</span>
+          </label>
+          <div
+            id="lesson-selection-summary"
+            class="lesson-selection-summary"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <p id="selected-lessons-text">選択中：全課</p>
+            <p id="candidate-word-count">出題候補：77語</p>
+            <p id="actual-question-count">実際の出題数：10問</p>
+          </div>
+          <p id="lesson-selection-error" class="input-error" role="alert" aria-live="assertive" hidden>
+            出題する課を1つ以上選択してください。
+          </p>
+        </fieldset>
+
         <fieldset class="question-count">
           <legend>出題数</legend>
           <div class="choice-grid">
@@ -106,6 +153,7 @@
             </div>
           </div>
         </header>
+        <p id="quiz-target-lessons" class="target-lessons">対象：全課</p>
         <div
           id="progress-bar"
           class="progress"
@@ -231,6 +279,10 @@
           </div>
         </div>
         <p id="result-planned" class="result-planned" hidden></p>
+        <div class="session-meta" aria-label="出題条件">
+          <p id="result-target-lessons">対象：全課</p>
+          <p id="result-question-count">出題数：0問</p>
+        </div>
 
         <p id="perfect-message" class="perfect-message" hidden>全問正解です！</p>
         <p id="result-speech-message" class="support-message" data-speech-message hidden></p>
@@ -271,6 +323,10 @@
             <span>予定単語数</span>
           </div>
         </div>
+        <div class="session-meta" aria-label="確認条件">
+          <p id="review-target-lessons">対象：全課</p>
+          <p id="review-question-count">予定単語数：0語</p>
+        </div>
         <p id="review-result-speech-message" class="support-message" data-speech-message hidden></p>
 
         <section class="results" aria-labelledby="review-result-list-title">
@@ -302,6 +358,16 @@
         <p class="lead word-list-lead">クイズに登録されている全77項目を確認できます。</p>
 
         <div class="search-area">
+          <label for="word-list-lesson-filter">課で絞り込む</label>
+          <select id="word-list-lesson-filter" class="lesson-filter">
+            <option value="all">全課</option>
+            <option value="1">第1課</option>
+            <option value="2">第2課</option>
+            <option value="3">第3課</option>
+            <option value="4">第4課</option>
+            <option value="5">第5課</option>
+            <option value="6">第6課</option>
+          </select>
           <label for="word-search">中国語・拼音・日本語の意味を検索</label>
           <input
             id="word-search"

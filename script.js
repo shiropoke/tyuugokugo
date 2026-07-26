@@ -1,7 +1,9 @@
 "use strict";
 
 const STORAGE_KEY = "tyuugokugo-mistake-words";
+const SELECTED_LESSONS_STORAGE_KEY = "tyuugokugo-selected-lessons";
 const HISTORY_APP_ID = "tyuugokugo";
+const ALL_LESSONS = [1, 2, 3, 4, 5, 6];
 const SESSION_MODES = {
   NORMAL: "normal",
   MISTAKE_REVIEW: "mistake-review",
@@ -25,6 +27,12 @@ const elements = {
     wordList: document.querySelector("#word-list-screen")
   },
   learningModeInputs: [...document.querySelectorAll('input[name="learning-mode"]')],
+  lessonInputs: [...document.querySelectorAll('input[name="lesson"]')],
+  allLessonsCheckbox: document.querySelector("#all-lessons-checkbox"),
+  selectedLessonsText: document.querySelector("#selected-lessons-text"),
+  candidateWordCount: document.querySelector("#candidate-word-count"),
+  actualQuestionCount: document.querySelector("#actual-question-count"),
+  lessonSelectionError: document.querySelector("#lesson-selection-error"),
   startButton: document.querySelector("#start-button"),
   homeReviewButton: document.querySelector("#home-review-button"),
   wordListButton: document.querySelector("#word-list-button"),
@@ -39,6 +47,7 @@ const elements = {
   scoreStatus: document.querySelector("#score-status"),
   correctCount: document.querySelector("#correct-count"),
   confirmationStatus: document.querySelector("#confirmation-status"),
+  quizTargetLessons: document.querySelector("#quiz-target-lessons"),
   progressBar: document.querySelector("#progress-bar"),
   progressFill: document.querySelector("#progress-fill"),
   promptLabel: document.querySelector("#prompt-label"),
@@ -71,6 +80,8 @@ const elements = {
   resultIncorrect: document.querySelector("#result-incorrect"),
   resultRate: document.querySelector("#result-rate"),
   resultPlanned: document.querySelector("#result-planned"),
+  resultTargetLessons: document.querySelector("#result-target-lessons"),
+  resultQuestionCount: document.querySelector("#result-question-count"),
   perfectMessage: document.querySelector("#perfect-message"),
   resultList: document.querySelector("#result-list"),
   retryButton: document.querySelector("#retry-button"),
@@ -80,12 +91,15 @@ const elements = {
   reviewResultDescription: document.querySelector("#review-result-description"),
   reviewedCount: document.querySelector("#reviewed-count"),
   reviewPlannedCount: document.querySelector("#review-planned-count"),
+  reviewTargetLessons: document.querySelector("#review-target-lessons"),
+  reviewQuestionCount: document.querySelector("#review-question-count"),
   reviewResultList: document.querySelector("#review-result-list"),
   reviewResultHomeButton: document.querySelector("#review-result-home-button"),
   reviewRetryButton: document.querySelector("#review-retry-button"),
   reviewToQuizButton: document.querySelector("#review-to-quiz-button"),
   wordListTitle: document.querySelector("#word-list-title"),
   wordListHomeButton: document.querySelector("#word-list-home-button"),
+  wordListLessonFilter: document.querySelector("#word-list-lesson-filter"),
   wordSearch: document.querySelector("#word-search"),
   searchResultCount: document.querySelector("#search-result-count"),
   noSearchResults: document.querySelector("#no-search-results"),
@@ -101,6 +115,7 @@ const elements = {
 const quizState = {
   mode: SESSION_MODES.NORMAL,
   originalMode: "10",
+  selectedLessons: [],
   questions: [],
   sourceWords: [],
   currentIndex: 0,
@@ -126,6 +141,7 @@ function isConfirmationMode() {
 function resetQuizState() {
   quizState.mode = SESSION_MODES.NORMAL;
   quizState.originalMode = "10";
+  quizState.selectedLessons = [];
   quizState.questions = [];
   quizState.sourceWords = [];
   quizState.currentIndex = 0;
@@ -191,6 +207,84 @@ function saveMistakeWords(wordList) {
   }
 }
 
+function isValidLessonSelection(value) {
+  return (
+    Array.isArray(value) &&
+    value.length >= 1 &&
+    value.length <= ALL_LESSONS.length &&
+    value.every((lesson) => Number.isInteger(lesson) && ALL_LESSONS.includes(lesson)) &&
+    new Set(value).size === value.length
+  );
+}
+
+function loadSelectedLessons() {
+  try {
+    const storedValue = localStorage.getItem(SELECTED_LESSONS_STORAGE_KEY);
+    if (!storedValue) {
+      return [...ALL_LESSONS];
+    }
+
+    const parsedValue = JSON.parse(storedValue);
+    return isValidLessonSelection(parsedValue)
+      ? [...parsedValue].sort((first, second) => first - second)
+      : [...ALL_LESSONS];
+  } catch (error) {
+    return [...ALL_LESSONS];
+  }
+}
+
+function saveSelectedLessons(selectedLessons) {
+  if (!isValidLessonSelection(selectedLessons)) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      SELECTED_LESSONS_STORAGE_KEY,
+      JSON.stringify([...selectedLessons])
+    );
+  } catch (error) {
+    // 保存できない環境でも、現在の選択で学習を続行します。
+  }
+}
+
+function getSelectedLessonsFromControls() {
+  return elements.lessonInputs
+    .filter((input) => input.checked)
+    .map((input) => Number(input.value))
+    .sort((first, second) => first - second);
+}
+
+function applyLessonSelection(selectedLessons) {
+  const selectedSet = new Set(selectedLessons);
+  elements.lessonInputs.forEach((input) => {
+    input.checked = selectedSet.has(Number(input.value));
+  });
+}
+
+function formatLessons(selectedLessons) {
+  if (selectedLessons.length === ALL_LESSONS.length) {
+    return "全課";
+  }
+
+  return selectedLessons.map((lesson) => `第${lesson}課`).join("・");
+}
+
+function getWordsForLessons(selectedLessons) {
+  return words.filter((item) => selectedLessons.includes(item.lesson));
+}
+
+function getSelectedQuestionCountValue() {
+  return document.querySelector('input[name="question-count"]:checked')?.value || "10";
+}
+
+function getActualQuestionCount(candidateCount) {
+  const selectedCount = getSelectedQuestionCountValue();
+  return selectedCount === "all"
+    ? candidateCount
+    : Math.min(Number(selectedCount), candidateCount);
+}
+
 function updateStoredMistakes(questionWord, wasCorrect) {
   const updatedWords = new Set(loadSavedMistakeWords());
 
@@ -203,20 +297,52 @@ function updateStoredMistakes(questionWord, wasCorrect) {
   saveMistakeWords([...updatedWords]);
 }
 
-function getSavedMistakeQuestions() {
+function getSavedMistakeQuestions(selectedLessons = ALL_LESSONS) {
   const savedWords = new Set(loadSavedMistakeWords());
-  return words.filter((item) => savedWords.has(item.word));
+  return words.filter(
+    (item) => savedWords.has(item.word) && selectedLessons.includes(item.lesson)
+  );
 }
 
-function updateHomeReviewControls() {
-  const savedCount = getSavedMistakeQuestions().length;
-  const hasSavedMistakes = savedCount > 0;
+function updateHomeReviewControls(selectedLessons = getSelectedLessonsFromControls()) {
+  const totalSavedCount = getSavedMistakeQuestions(ALL_LESSONS).length;
+  const selectedSavedCount = getSavedMistakeQuestions(selectedLessons).length;
+  const hasSavedMistakes = totalSavedCount > 0;
 
   elements.homeReviewButton.hidden = !hasSavedMistakes;
+  elements.homeReviewButton.disabled = selectedSavedCount === 0;
+  elements.homeReviewButton.textContent =
+    `間違えた問題だけ復習（${selectedSavedCount}語）`;
   elements.savedMistakesNote.hidden = !hasSavedMistakes;
   elements.savedMistakesNote.textContent = hasSavedMistakes
-    ? `保存中の間違い：${savedCount}問`
+    ? selectedSavedCount > 0
+      ? `選択中の復習対象：${selectedSavedCount}語`
+      : "選択した課には、復習する単語がありません。"
     : "";
+}
+
+function updateLessonSelectionUI(options = {}) {
+  const { save = true } = options;
+  const selectedLessons = getSelectedLessonsFromControls();
+  const selectedCount = selectedLessons.length;
+  const candidateCount = getWordsForLessons(selectedLessons).length;
+  const actualCount = getActualQuestionCount(candidateCount);
+
+  elements.allLessonsCheckbox.checked = selectedCount === ALL_LESSONS.length;
+  elements.allLessonsCheckbox.indeterminate =
+    selectedCount > 0 && selectedCount < ALL_LESSONS.length;
+  elements.selectedLessonsText.textContent =
+    `選択中：${selectedCount > 0 ? formatLessons(selectedLessons) : "なし"}`;
+  elements.candidateWordCount.textContent = `出題候補：${candidateCount}語`;
+  elements.actualQuestionCount.textContent = `実際の出題数：${actualCount}問`;
+  elements.lessonSelectionError.textContent =
+    "出題する課を1つ以上選択してください。";
+  elements.lessonSelectionError.hidden = selectedCount > 0;
+  updateHomeReviewControls(selectedLessons);
+
+  if (save && selectedCount > 0) {
+    saveSelectedLessons(selectedLessons);
+  }
 }
 
 function updateHomeModeControls() {
@@ -268,7 +394,7 @@ function showHomeScreen(options = {}) {
     resetQuizState();
   }
   updateHomeModeControls();
-  updateHomeReviewControls();
+  updateLessonSelectionUI({ save: false });
   showOnlyScreen("home");
   if (focus) {
     elements.startButton.focus();
@@ -305,6 +431,10 @@ function showResultScreen(options = {}) {
   elements.resultPlanned.textContent = quizState.isInterrupted
     ? `予定問題数：${quizState.totalPlannedQuestions}問`
     : "";
+  elements.resultTargetLessons.textContent =
+    `対象：${formatLessons(quizState.selectedLessons)}`;
+  elements.resultQuestionCount.textContent =
+    `出題数：${quizState.totalPlannedQuestions}問`;
   elements.perfectMessage.hidden = quizState.isInterrupted || summary.incorrect !== 0;
   elements.resultReviewButton.hidden = summary.incorrect === 0;
   elements.retryButton.textContent = quizState.isInterrupted
@@ -327,6 +457,10 @@ function showReviewResultScreen(options = {}) {
   elements.reviewResultDescription.hidden = !quizState.isInterrupted;
   elements.reviewedCount.textContent = String(quizState.reviewedHistory.length);
   elements.reviewPlannedCount.textContent = String(quizState.totalPlannedQuestions);
+  elements.reviewTargetLessons.textContent =
+    `対象：${formatLessons(quizState.selectedLessons)}`;
+  elements.reviewQuestionCount.textContent =
+    `予定単語数：${quizState.totalPlannedQuestions}語`;
   elements.reviewRetryButton.textContent = quizState.isInterrupted
     ? "最初からもう一度確認する"
     : "もう一度確認する";
@@ -347,8 +481,11 @@ function showWordListScreen(options = {}) {
   resetQuizState();
   if (resetSearch) {
     elements.wordSearch.value = "";
+    elements.wordListLessonFilter.value = "all";
   }
-  renderWordList(filterWords(elements.wordSearch.value));
+  renderWordList(
+    filterWords(elements.wordSearch.value, elements.wordListLessonFilter.value)
+  );
   showOnlyScreen("wordList");
   if (focus) {
     elements.wordListTitle.focus();
@@ -461,12 +598,11 @@ function getSelectedSessionConfiguration() {
   const selectedCount = document.querySelector('input[name="question-count"]:checked');
   const selectedLearningMode = document.querySelector('input[name="learning-mode"]:checked');
   const originalMode = selectedCount?.value || "10";
-  const questionLimit = originalMode === "all" ? words.length : Number(originalMode);
   const learningMode = selectedLearningMode?.value === "confirmation"
     ? SESSION_MODES.CONFIRMATION
     : SESSION_MODES.NORMAL;
 
-  return { originalMode, questionLimit, learningMode };
+  return { originalMode, learningMode };
 }
 
 function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, options = {}) {
@@ -477,12 +613,16 @@ function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, o
 
   const {
     historyAction = "push",
-    originalMode = mode === SESSION_MODES.MISTAKE_REVIEW ? "mistake-review" : String(questionLimit)
+    originalMode = mode === SESSION_MODES.MISTAKE_REVIEW ? "mistake-review" : String(questionLimit),
+    selectedLessons = [...new Set(sourceWords.map((item) => item.lesson))].sort(
+      (first, second) => first - second
+    )
   } = options;
   const safeLimit = Math.min(questionLimit, sourceWords.length);
 
   quizState.mode = mode;
   quizState.originalMode = originalMode;
+  quizState.selectedLessons = [...selectedLessons];
   quizState.sourceWords = [...sourceWords];
   quizState.questions = shuffleWords(sourceWords).slice(0, safeLimit);
   quizState.currentIndex = 0;
@@ -505,17 +645,39 @@ function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, o
 
 function startSelectedSession() {
   const configuration = getSelectedSessionConfiguration();
-  startSession(words, configuration.questionLimit, configuration.learningMode, {
+  const selectedLessons = getSelectedLessonsFromControls();
+
+  if (selectedLessons.length === 0) {
+    elements.lessonSelectionError.hidden = false;
+    elements.lessonInputs[0].focus();
+    return;
+  }
+
+  const availableWords = getWordsForLessons(selectedLessons);
+  const questionLimit = configuration.originalMode === "all"
+    ? availableWords.length
+    : Number(configuration.originalMode);
+  startSession(availableWords, questionLimit, configuration.learningMode, {
     historyAction: "push",
-    originalMode: configuration.originalMode
+    originalMode: configuration.originalMode,
+    selectedLessons
   });
 }
 
 function startSavedMistakesReview() {
-  const reviewQuestions = getSavedMistakeQuestions();
+  const selectedLessons = getSelectedLessonsFromControls();
+  const reviewQuestions = getSavedMistakeQuestions(selectedLessons);
+  if (reviewQuestions.length === 0) {
+    elements.lessonSelectionError.textContent =
+      "選択した課には、復習する単語がありません。";
+    elements.lessonSelectionError.hidden = false;
+    return;
+  }
+
   startSession(reviewQuestions, reviewQuestions.length, SESSION_MODES.MISTAKE_REVIEW, {
     historyAction: "push",
-    originalMode: "mistake-review"
+    originalMode: "mistake-review",
+    selectedLessons
   });
 }
 
@@ -526,16 +688,21 @@ function startCurrentMistakesReview() {
       .map((answer) => answer.word)
   );
   const reviewQuestions = quizState.questions.filter((question) => incorrectWords.has(question.word));
+  const selectedLessons = [...new Set(reviewQuestions.map((question) => question.lesson))].sort(
+    (first, second) => first - second
+  );
   startSession(reviewQuestions, reviewQuestions.length, SESSION_MODES.MISTAKE_REVIEW, {
     historyAction: "replace",
-    originalMode: "mistake-review"
+    originalMode: "mistake-review",
+    selectedLessons
   });
 }
 
 function retryQuiz() {
   startSession(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
     historyAction: "replace",
-    originalMode: quizState.originalMode
+    originalMode: quizState.originalMode,
+    selectedLessons: quizState.selectedLessons
   });
 }
 
@@ -546,7 +713,8 @@ function retryConfirmation() {
     SESSION_MODES.CONFIRMATION,
     {
       historyAction: "replace",
-      originalMode: quizState.originalMode
+      originalMode: quizState.originalMode,
+      selectedLessons: quizState.selectedLessons
     }
   );
 }
@@ -554,7 +722,8 @@ function retryConfirmation() {
 function restartCurrentSession() {
   startSession(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
     historyAction: "replace",
-    originalMode: quizState.originalMode
+    originalMode: quizState.originalMode,
+    selectedLessons: quizState.selectedLessons
   });
 }
 
@@ -567,9 +736,13 @@ function getReviewedSourceWords() {
 
 function startQuizFromReviewedWords() {
   const reviewedWords = getReviewedSourceWords();
+  const selectedLessons = [...new Set(reviewedWords.map((item) => item.lesson))].sort(
+    (first, second) => first - second
+  );
   startSession(reviewedWords, reviewedWords.length, SESSION_MODES.CONFIRMED_QUIZ, {
     historyAction: "replace",
-    originalMode: "confirmed-words"
+    originalMode: "confirmed-words",
+    selectedLessons
   });
 }
 
@@ -588,6 +761,8 @@ function renderQuestion() {
   elements.scoreStatus.hidden = confirmationMode;
   elements.confirmationStatus.hidden = !confirmationMode;
   elements.correctCount.textContent = String(quizState.correctCount);
+  elements.quizTargetLessons.textContent =
+    `対象：${formatLessons(quizState.selectedLessons)}`;
   elements.progressBar.setAttribute("aria-valuemax", String(totalQuestions));
   elements.progressBar.setAttribute("aria-valuenow", String(quizState.currentIndex));
   elements.progressFill.style.width = `${(quizState.currentIndex / totalQuestions) * 100}%`;
@@ -683,6 +858,7 @@ function recordAnswer(question, userAnswer, wasCorrect, skipped) {
     word: question.word,
     pinyin: question.pinyin,
     meaning: question.meaning,
+    lesson: question.lesson,
     userAnswer,
     isCorrect: wasCorrect,
     skipped
@@ -753,6 +929,7 @@ function recordReviewedWord(question) {
     word: question.word,
     pinyin: question.pinyin,
     meaning: question.meaning,
+    lesson: question.lesson,
     reviewed: true
   });
 }
@@ -883,6 +1060,7 @@ function renderResultList() {
     header.append(questionNumber, status);
 
     details.append(
+      createResultDetail("課", `第${answer.lesson}課`),
       createResultDetail("拼音", answer.pinyin, { lang: "zh-Latn" }),
       createResultDetail("正解", answer.word, { className: "chinese-text", lang: "zh-Hans" }),
       createResultDetail("あなたの解答", answer.skipped ? "未回答" : answer.userAnswer, {
@@ -916,6 +1094,7 @@ function renderReviewResultList() {
     pronunciationButton.className = "pronunciation-button pronunciation-button-small";
     header.append(questionNumber);
     details.append(
+      createResultDetail("課", `第${reviewedItem.lesson}課`),
       createResultDetail("拼音", reviewedItem.pinyin, { lang: "zh-Latn" }),
       createResultDetail("中国語", reviewedItem.word, {
         className: "chinese-text",
@@ -934,17 +1113,19 @@ function normalizeSearchText(value) {
   return String(value).trim().toLocaleLowerCase();
 }
 
-function filterWords(searchText) {
+function filterWords(searchText, lessonFilter = "all") {
   const normalizedQuery = normalizeSearchText(searchText);
-  if (normalizedQuery === "") {
-    return words;
-  }
+  const selectedLesson = lessonFilter === "all" ? null : Number(lessonFilter);
 
-  return words.filter((item) =>
-    [item.word, item.pinyin, item.meaning]
-      .map(normalizeSearchText)
-      .some((value) => value.includes(normalizedQuery))
-  );
+  return words.filter((item) => {
+    const matchesLesson = selectedLesson === null || item.lesson === selectedLesson;
+    const matchesSearch =
+      normalizedQuery === "" ||
+      [item.word, item.pinyin, item.meaning]
+        .map(normalizeSearchText)
+        .some((value) => value.includes(normalizedQuery));
+    return matchesLesson && matchesSearch;
+  });
 }
 
 function createWordDetail(labelText, valueText, options = {}) {
@@ -971,15 +1152,30 @@ function renderWordList(filteredWords) {
   elements.wordList.replaceChildren();
   elements.noSearchResults.hidden = filteredWords.length !== 0;
   elements.searchResultCount.textContent = `${filteredWords.length}件 / 全${words.length}件`;
+  let currentLesson = null;
 
   filteredWords.forEach((item) => {
+    if (item.lesson !== currentLesson) {
+      const headingItem = document.createElement("li");
+      const heading = document.createElement("h2");
+      headingItem.className = "word-list-lesson-heading";
+      heading.textContent = `第${item.lesson}課`;
+      headingItem.append(heading);
+      elements.wordList.append(headingItem);
+      currentLesson = item.lesson;
+    }
+
     const listItem = document.createElement("li");
+    const lessonBadge = document.createElement("p");
     const pronunciationButton = document.createElement("button");
 
     listItem.className = "word-list-item";
+    lessonBadge.className = "lesson-badge";
+    lessonBadge.textContent = `第${item.lesson}課`;
     pronunciationButton.className = "pronunciation-button";
 
     listItem.append(
+      lessonBadge,
       createWordDetail("中国語", item.word, {
         className: "word-list-chinese chinese-text",
         lang: "zh-Hans"
@@ -994,7 +1190,9 @@ function renderWordList(filteredWords) {
 }
 
 function updateWordSearch() {
-  renderWordList(filterWords(elements.wordSearch.value));
+  renderWordList(
+    filterWords(elements.wordSearch.value, elements.wordListLessonFilter.value)
+  );
 }
 
 function updateSpeechAvailability() {
@@ -1184,6 +1382,19 @@ function handlePopState(event) {
 elements.learningModeInputs.forEach((input) => {
   input.addEventListener("change", updateHomeModeControls);
 });
+elements.lessonInputs.forEach((input) => {
+  input.addEventListener("change", () => updateLessonSelectionUI());
+});
+elements.allLessonsCheckbox.addEventListener("change", () => {
+  const shouldSelectAll = elements.allLessonsCheckbox.checked;
+  elements.lessonInputs.forEach((input) => {
+    input.checked = shouldSelectAll;
+  });
+  updateLessonSelectionUI();
+});
+document.querySelectorAll('input[name="question-count"]').forEach((input) => {
+  input.addEventListener("change", () => updateLessonSelectionUI({ save: false }));
+});
 elements.startButton.addEventListener("click", startSelectedSession);
 elements.homeReviewButton.addEventListener("click", startSavedMistakesReview);
 elements.wordListButton.addEventListener("click", () => {
@@ -1216,6 +1427,7 @@ elements.reviewRetryButton.addEventListener("click", retryConfirmation);
 elements.reviewToQuizButton.addEventListener("click", startQuizFromReviewedWords);
 elements.wordListHomeButton.addEventListener("click", navigateHomeFromWordList);
 elements.wordSearch.addEventListener("input", updateWordSearch);
+elements.wordListLessonFilter.addEventListener("change", updateWordSearch);
 elements.confirmDialogButton.addEventListener("click", confirmDialogSelection);
 elements.cancelDialogButton.addEventListener("click", () => closeConfirmDialog());
 elements.confirmDialog.addEventListener("click", (event) => {
@@ -1271,6 +1483,8 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("popstate", handlePopState);
 
+applyLessonSelection(loadSelectedLessons());
 updateSpeechAvailability();
 updateHomeModeControls();
+updateLessonSelectionUI({ save: false });
 initializeHistory();
