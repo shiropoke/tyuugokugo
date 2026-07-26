@@ -157,6 +157,9 @@
               間違えた問題だけ復習
             </button>
             <button id="word-list-button" class="button button-secondary" type="button">単語一覧を見る</button>
+            <button id="tone-chart-button" class="button button-secondary" type="button">
+              声調組み合わせ表
+            </button>
           </div>
         </div>
         <p id="saved-mistakes-note" class="saved-note" hidden></p>
@@ -434,6 +437,53 @@
         <p id="no-search-results" class="empty-message" hidden>該当する単語がありません</p>
         <ul id="word-list" class="word-list"></ul>
       </section>
+
+      <section
+        id="tone-chart-screen"
+        class="screen content-screen tone-chart-screen"
+        aria-labelledby="tone-chart-title"
+        hidden
+      >
+        <div class="screen-top-actions">
+          <button id="tone-chart-home-button" class="button button-quiet button-compact" type="button">
+            ホームに戻る
+          </button>
+        </div>
+        <p class="eyebrow">TONE CHART</p>
+        <h1 id="tone-chart-title" tabindex="-1">声調組み合わせ表</h1>
+        <div class="tone-chart-content">
+          <p class="lead tone-chart-description">
+            中国語の単語を、声調の組み合わせごとにまとめた表です。
+          </p>
+          <button
+            id="tone-chart-image-button"
+            class="tone-chart-image-button"
+            type="button"
+            aria-label="声調組み合わせ表を拡大して表示する"
+            aria-describedby="tone-chart-zoom-guide"
+          >
+            <img
+              id="tone-chart-image"
+              class="tone-chart-image"
+              src="./assets/tone-combination-chart.png"
+              alt="中国語の声調の組み合わせ一覧表"
+              draggable="false"
+            >
+          </button>
+          <p id="tone-chart-zoom-guide" class="tone-chart-zoom-guide">
+            画像を押すと拡大して表示できます。
+          </p>
+          <p
+            id="tone-chart-error"
+            class="tone-chart-error"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            声調組み合わせ表の画像を読み込めませんでした。
+          </p>
+        </div>
+      </section>
     </main>
 
     <div
@@ -455,6 +505,38 @@
           <button id="cancel-dialog-button" class="button button-quiet" type="button">
             クイズを続ける
           </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="tone-chart-dialog"
+      class="tone-chart-dialog-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tone-chart-dialog-title"
+      hidden
+    >
+      <div class="tone-chart-dialog-panel">
+        <div class="tone-chart-dialog-header">
+          <h2 id="tone-chart-dialog-title">声調組み合わせ表の拡大表示</h2>
+          <button id="tone-chart-dialog-close-button" class="button button-quiet" type="button">
+            閉じる
+          </button>
+        </div>
+        <div
+          id="tone-chart-zoom-viewport"
+          class="tone-chart-zoom-viewport"
+          tabindex="0"
+          aria-label="拡大した声調組み合わせ表のスクロール領域"
+        >
+          <img
+            id="tone-chart-dialog-image"
+            class="tone-chart-dialog-image"
+            src="./assets/tone-combination-chart.png"
+            alt="中国語の声調の組み合わせ一覧表の拡大表示"
+            draggable="false"
+          >
         </div>
       </div>
     </div>

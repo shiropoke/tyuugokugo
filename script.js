@@ -27,7 +27,8 @@ const SCREEN_HASHES = {
   quiz: "#quiz",
   result: "#result",
   reviewResult: "#confirmation-result",
-  wordList: "#words"
+  wordList: "#words",
+  toneChart: "#tones"
 };
 
 const elements = {
@@ -36,7 +37,8 @@ const elements = {
     quiz: document.querySelector("#quiz-screen"),
     result: document.querySelector("#result-screen"),
     reviewResult: document.querySelector("#review-result-screen"),
-    wordList: document.querySelector("#word-list-screen")
+    wordList: document.querySelector("#word-list-screen"),
+    toneChart: document.querySelector("#tone-chart-screen")
   },
   learningModeInputs: [...document.querySelectorAll('input[name="learning-mode"]')],
   lessonInputs: [...document.querySelectorAll('input[name="lesson"]')],
@@ -48,6 +50,7 @@ const elements = {
   startButton: document.querySelector("#start-button"),
   homeReviewButton: document.querySelector("#home-review-button"),
   wordListButton: document.querySelector("#word-list-button"),
+  toneChartButton: document.querySelector("#tone-chart-button"),
   savedMistakesNote: document.querySelector("#saved-mistakes-note"),
   quizHomeButton: document.querySelector("#quiz-home-button"),
   quizMenu: document.querySelector("#quiz-menu"),
@@ -122,6 +125,16 @@ const elements = {
   searchResultCount: document.querySelector("#search-result-count"),
   noSearchResults: document.querySelector("#no-search-results"),
   wordList: document.querySelector("#word-list"),
+  toneChartTitle: document.querySelector("#tone-chart-title"),
+  toneChartHomeButton: document.querySelector("#tone-chart-home-button"),
+  toneChartImageButton: document.querySelector("#tone-chart-image-button"),
+  toneChartImage: document.querySelector("#tone-chart-image"),
+  toneChartZoomGuide: document.querySelector("#tone-chart-zoom-guide"),
+  toneChartError: document.querySelector("#tone-chart-error"),
+  toneChartDialog: document.querySelector("#tone-chart-dialog"),
+  toneChartDialogCloseButton: document.querySelector("#tone-chart-dialog-close-button"),
+  toneChartZoomViewport: document.querySelector("#tone-chart-zoom-viewport"),
+  toneChartDialogImage: document.querySelector("#tone-chart-dialog-image"),
   speechMessages: [...document.querySelectorAll("[data-speech-message]")],
   confirmDialog: document.querySelector("#confirm-dialog"),
   confirmDialogTitle: document.querySelector("#confirm-dialog-title"),
@@ -151,6 +164,7 @@ const quizState = {
 let currentScreenName = "home";
 let confirmDialogAction = null;
 let focusBeforeDialog = null;
+let focusBeforeToneChartDialog = null;
 let inputFocusScrollTimer = null;
 
 function isConfirmationMode() {
@@ -524,6 +538,9 @@ function showOnlyScreen(screenName) {
   if (!elements.confirmDialog.hidden) {
     closeConfirmDialog(false);
   }
+  if (!elements.toneChartDialog.hidden) {
+    closeToneChartDialog(false);
+  }
 
   Object.entries(elements.screens).forEach(([name, screen]) => {
     screen.hidden = name !== screenName;
@@ -642,6 +659,16 @@ function showWordListScreen(options = {}) {
   }
 }
 
+function showToneChartScreen(options = {}) {
+  const { focus = true } = options;
+  speechController.cancel();
+  resetQuizState();
+  showOnlyScreen("toneChart");
+  if (focus) {
+    elements.toneChartTitle.focus();
+  }
+}
+
 function isValidScreenName(screenName) {
   return Object.hasOwn(elements.screens, screenName);
 }
@@ -671,6 +698,8 @@ function renderScreenFromHistory(screenName, options = {}) {
     showHomeScreen({ focus, reset: true });
   } else if (screenName === "wordList") {
     showWordListScreen({ focus, resetSearch: true });
+  } else if (screenName === "toneChart") {
+    showToneChartScreen({ focus });
   } else if (screenName === "quiz" && quizState.questions.length > 0) {
     showQuizScreen();
   } else if (screenName === "result" && quizState.answerHistory.length > 0) {
@@ -1425,18 +1454,86 @@ function openConfirmDialog(options) {
   elements.confirmDialogButton.textContent = confirmLabel;
   elements.cancelDialogButton.textContent = cancelLabel;
   elements.confirmDialog.hidden = false;
-  document.body.classList.add("dialog-open");
+  updateDialogOpenState();
   elements.cancelDialogButton.focus();
 }
 
 function closeConfirmDialog(restoreFocus = true) {
   elements.confirmDialog.hidden = true;
-  document.body.classList.remove("dialog-open");
+  updateDialogOpenState();
   confirmDialogAction = null;
   if (restoreFocus && focusBeforeDialog instanceof HTMLElement) {
     focusBeforeDialog.focus();
   }
   focusBeforeDialog = null;
+}
+
+function updateDialogOpenState() {
+  const hasOpenDialog =
+    !elements.confirmDialog.hidden || !elements.toneChartDialog.hidden;
+  document.body.classList.toggle("dialog-open", hasOpenDialog);
+}
+
+function openToneChartDialog() {
+  if (elements.toneChartImageButton.hidden) {
+    return;
+  }
+
+  focusBeforeToneChartDialog = elements.toneChartImageButton;
+  elements.toneChartZoomViewport.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  elements.toneChartDialog.hidden = false;
+  updateDialogOpenState();
+  elements.toneChartDialogCloseButton.focus();
+}
+
+function closeToneChartDialog(restoreFocus = true) {
+  elements.toneChartDialog.hidden = true;
+  updateDialogOpenState();
+  if (restoreFocus && focusBeforeToneChartDialog instanceof HTMLElement) {
+    focusBeforeToneChartDialog.focus();
+  }
+  focusBeforeToneChartDialog = null;
+}
+
+function handleToneChartDialogKeydown(event) {
+  if (elements.toneChartDialog.hidden) {
+    return;
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeToneChartDialog();
+    return;
+  }
+
+  if (event.key !== "Tab") {
+    return;
+  }
+
+  const firstFocusable = elements.toneChartDialogCloseButton;
+  const lastFocusable = elements.toneChartZoomViewport;
+  if (event.shiftKey && document.activeElement === firstFocusable) {
+    event.preventDefault();
+    lastFocusable.focus();
+  } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+    event.preventDefault();
+    firstFocusable.focus();
+  }
+}
+
+function handleToneChartImageError() {
+  elements.toneChartImageButton.hidden = true;
+  elements.toneChartZoomGuide.hidden = true;
+  elements.toneChartError.hidden = false;
+  if (!elements.toneChartDialog.hidden) {
+    closeToneChartDialog(false);
+  }
+}
+
+function handleToneChartImageLoad() {
+  elements.toneChartImageButton.hidden = false;
+  elements.toneChartZoomGuide.hidden = false;
+  elements.toneChartError.hidden = true;
 }
 
 function confirmDialogSelection() {
@@ -1517,11 +1614,11 @@ function handleDialogKeydown(event) {
   }
 }
 
-function navigateHomeFromWordList() {
+function navigateHomeFromAuxiliaryScreen(screenName) {
   const state = history.state;
   const canGoBackToAppHome =
     state?.app === HISTORY_APP_ID &&
-    state.screen === "wordList" &&
+    state.screen === screenName &&
     state.from === "home";
 
   if (canGoBackToAppHome) {
@@ -1529,6 +1626,14 @@ function navigateHomeFromWordList() {
   } else {
     replaceHistoryWithHome();
   }
+}
+
+function navigateHomeFromWordList() {
+  navigateHomeFromAuxiliaryScreen("wordList");
+}
+
+function navigateHomeFromToneChart() {
+  navigateHomeFromAuxiliaryScreen("toneChart");
 }
 
 function navigateHomeFromResult() {
@@ -1600,6 +1705,13 @@ elements.wordListButton.addEventListener("click", () => {
     focus: true
   });
 });
+elements.toneChartButton.addEventListener("click", () => {
+  navigateToScreen("toneChart", {
+    historyAction: "push",
+    from: "home",
+    focus: true
+  });
+});
 elements.quizHomeButton.addEventListener("click", requestExitSession);
 elements.quizMenuButton.addEventListener("click", toggleQuizMenu);
 elements.restartButton.addEventListener("click", requestRestartSession);
@@ -1622,6 +1734,18 @@ elements.reviewResultHomeButton.addEventListener("click", navigateHomeFromResult
 elements.reviewRetryButton.addEventListener("click", retryConfirmation);
 elements.reviewToQuizButton.addEventListener("click", startQuizFromReviewedWords);
 elements.wordListHomeButton.addEventListener("click", navigateHomeFromWordList);
+elements.toneChartHomeButton.addEventListener("click", navigateHomeFromToneChart);
+elements.toneChartImageButton.addEventListener("click", openToneChartDialog);
+elements.toneChartDialogCloseButton.addEventListener("click", () => closeToneChartDialog());
+elements.toneChartDialog.addEventListener("click", (event) => {
+  if (event.target === elements.toneChartDialog) {
+    closeToneChartDialog();
+  }
+});
+elements.toneChartDialog.addEventListener("keydown", handleToneChartDialogKeydown);
+elements.toneChartImage.addEventListener("load", handleToneChartImageLoad);
+elements.toneChartImage.addEventListener("error", handleToneChartImageError);
+elements.toneChartDialogImage.addEventListener("error", handleToneChartImageError);
 elements.wordSearch.addEventListener("input", updateWordSearch);
 elements.wordListLessonFilter.addEventListener("change", updateWordSearch);
 elements.confirmDialogButton.addEventListener("click", confirmDialogSelection);
@@ -1678,6 +1802,14 @@ document.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("popstate", handlePopState);
+
+if (elements.toneChartImage.complete) {
+  if (elements.toneChartImage.naturalWidth > 0) {
+    handleToneChartImageLoad();
+  } else {
+    handleToneChartImageError();
+  }
+}
 
 applyLearningModeSelection(loadLearningMode());
 loadLastInputMode();

@@ -1109,6 +1109,58 @@ form label {
   margin-top: auto;
 }
 
+.tone-chart-screen {
+  max-width: 1500px;
+}
+
+.tone-chart-content {
+  width: 100%;
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+.tone-chart-description {
+  margin-bottom: 18px;
+}
+
+.tone-chart-image-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: zoom-in;
+}
+
+.tone-chart-image-button:hover {
+  border-color: #8eb0cb;
+  background: var(--blue-soft);
+}
+
+.tone-chart-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.tone-chart-zoom-guide {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.tone-chart-error {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--blue);
+  color: var(--text);
+  background: var(--blue-soft);
+}
+
 .dialog-open {
   overflow: hidden;
 }
@@ -1146,6 +1198,71 @@ form label {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.tone-chart-dialog-backdrop {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgb(13 26 37 / 68%);
+}
+
+.tone-chart-dialog-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(100%, 1500px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 14px 38px rgb(0 0 0 / 24%);
+}
+
+.tone-chart-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tone-chart-dialog-header h2 {
+  margin: 0;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  line-height: 1.4;
+}
+
+.tone-chart-dialog-header .button {
+  min-height: 44px;
+  flex: 0 0 auto;
+}
+
+.tone-chart-zoom-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: #ffffff;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tone-chart-zoom-viewport:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -4px;
+}
+
+.tone-chart-dialog-image {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: auto;
 }
 
 .perfect-message {
@@ -1283,6 +1400,21 @@ form label {
 
   .dialog-actions {
     grid-template-columns: 1fr;
+  }
+
+  .tone-chart-dialog-backdrop {
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+
+  .tone-chart-dialog-panel {
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  .tone-chart-dialog-header {
+    gap: 10px;
+    padding: 10px;
   }
 
   .quiz-question-area {
