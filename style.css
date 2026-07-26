@@ -146,6 +146,36 @@ h2 {
   text-align: center;
 }
 
+.handwriting-notice {
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 28px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--blue);
+  border-radius: 0 8px 8px 0;
+  color: var(--text);
+  background: var(--blue-soft);
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.handwriting-notice h2 {
+  margin-bottom: 6px;
+  color: var(--blue-dark);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.handwriting-notice p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.handwriting-notice strong {
+  font-weight: 800;
+}
+
 .learning-mode,
 .lesson-selector,
 .question-count {
