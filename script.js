@@ -22,6 +22,82 @@ const SESSION_MODES = {
   CONFIRMATION: "confirmation",
   CONFIRMED_QUIZ: "confirmed-quiz"
 };
+const twoSyllableToneTable = {
+  columns: ["1声", "2声", "3声", "4声", "軽声"],
+  rows: [
+    {
+      firstTone: "1声",
+      cells: [
+        ["参加", "新生", "西装", "哎呀", "高一", "发音", "听说"],
+        ["开学"],
+        [],
+        ["方便", "高兴", "拉面", "工作"],
+        ["知道", "多了"]
+      ]
+    },
+    {
+      firstTone: "2声",
+      cells: [
+        ["服装"],
+        [],
+        ["如果", "来晚"],
+        ["一定", "没事儿", "然后", "学费"],
+        ["还是", "觉得", "凉快"]
+      ]
+    },
+    {
+      firstTone: "3声",
+      cells: [
+        [],
+        ["礼堂", "有名", "主食", "旅游"],
+        ["典礼", "可以"],
+        ["晚饭", "炒饭", "饮料", "可乐", "暑假", "打算"],
+        ["怎么", "晚上", "喜欢"]
+      ]
+    },
+    {
+      firstTone: "4声",
+      cells: [
+        ["爱吃", "套餐"],
+        ["自由", "特别", "不行", "大连"],
+        [],
+        ["羡慕"],
+        ["太～了", "这么", "进去", "是～的"]
+      ]
+    },
+    {
+      firstTone: "軽声",
+      cells: [
+        [],
+        [],
+        [],
+        ["～的话"],
+        []
+      ]
+    }
+  ]
+};
+const oneSyllableToneTable = [
+  { tone: "1声", words: ["穿", "家", "刚", "杯", "说", "真"] },
+  { tone: "2声", words: ["盘", "难"] },
+  { tone: "3声", words: ["好", "请", "点", "碗"] },
+  { tone: "4声", words: ["就", "那", "挣"] },
+  { tone: "軽声", words: ["得"] }
+];
+const threeSyllableToneTable = [
+  { tones: "1-1-4", word: "乌冬面" },
+  { tones: "3-2-4", word: "网红店" },
+  { tones: "4-軽-軽", word: "怪不得" },
+  { tones: "4-軽-3", word: "差得远" },
+  { tones: "4-4-軽", word: "快要～了" }
+];
+const longToneTable = [
+  { tones: "1-2-1-2", word: "欢迎光临" },
+  { tones: "1-3-1-4", word: "猪骨汤面" },
+  { tones: "4-2-1-4", word: "酱油拉面" },
+  { tones: "4-3-4-軽", word: "不好意思" },
+  { tones: "2-3-1-2-3", word: "无酒精啤酒" }
+];
 const SCREEN_HASHES = {
   home: "#home",
   quiz: "#quiz",
@@ -127,14 +203,10 @@ const elements = {
   wordList: document.querySelector("#word-list"),
   toneChartTitle: document.querySelector("#tone-chart-title"),
   toneChartHomeButton: document.querySelector("#tone-chart-home-button"),
-  toneChartImageButton: document.querySelector("#tone-chart-image-button"),
-  toneChartImage: document.querySelector("#tone-chart-image"),
-  toneChartZoomGuide: document.querySelector("#tone-chart-zoom-guide"),
-  toneChartError: document.querySelector("#tone-chart-error"),
-  toneChartDialog: document.querySelector("#tone-chart-dialog"),
-  toneChartDialogCloseButton: document.querySelector("#tone-chart-dialog-close-button"),
-  toneChartZoomViewport: document.querySelector("#tone-chart-zoom-viewport"),
-  toneChartDialogImage: document.querySelector("#tone-chart-dialog-image"),
+  twoSyllableToneTable: document.querySelector("#two-syllable-tone-table"),
+  oneSyllableToneTable: document.querySelector("#one-syllable-tone-table"),
+  threeSyllableToneTable: document.querySelector("#three-syllable-tone-table"),
+  longToneTable: document.querySelector("#long-tone-table"),
   speechMessages: [...document.querySelectorAll("[data-speech-message]")],
   confirmDialog: document.querySelector("#confirm-dialog"),
   confirmDialogTitle: document.querySelector("#confirm-dialog-title"),
@@ -164,7 +236,6 @@ const quizState = {
 let currentScreenName = "home";
 let confirmDialogAction = null;
 let focusBeforeDialog = null;
-let focusBeforeToneChartDialog = null;
 let inputFocusScrollTimer = null;
 
 function isConfirmationMode() {
@@ -538,9 +609,6 @@ function showOnlyScreen(screenName) {
   if (!elements.confirmDialog.hidden) {
     closeConfirmDialog(false);
   }
-  if (!elements.toneChartDialog.hidden) {
-    closeToneChartDialog(false);
-  }
 
   Object.entries(elements.screens).forEach(([name, screen]) => {
     screen.hidden = name !== screenName;
@@ -659,10 +727,128 @@ function showWordListScreen(options = {}) {
   }
 }
 
+function createToneWordsCell(words) {
+  const cell = document.createElement("td");
+  cell.className = "tone-table-words";
+  cell.lang = "zh-CN";
+  cell.textContent = words.length > 0 ? words.join("・") : "—";
+  return cell;
+}
+
+function createTwoSyllableToneTable() {
+  const table = document.createElement("table");
+  table.className = "tone-table tone-table--two-syllable";
+
+  const caption = document.createElement("caption");
+  caption.textContent = "2音節の声調組み合わせ表";
+  table.append(caption);
+
+  const tableHead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  const cornerHeader = document.createElement("th");
+  cornerHeader.scope = "col";
+  cornerHeader.textContent = "1音目＼2音目";
+  headerRow.append(cornerHeader);
+
+  twoSyllableToneTable.columns.forEach((tone) => {
+    const columnHeader = document.createElement("th");
+    columnHeader.scope = "col";
+    columnHeader.textContent = tone;
+    headerRow.append(columnHeader);
+  });
+  tableHead.append(headerRow);
+  table.append(tableHead);
+
+  const tableBody = document.createElement("tbody");
+  twoSyllableToneTable.rows.forEach((row) => {
+    const tableRow = document.createElement("tr");
+    const rowHeader = document.createElement("th");
+    rowHeader.scope = "row";
+    rowHeader.textContent = row.firstTone;
+    tableRow.append(rowHeader);
+    row.cells.forEach((wordsInCell) => {
+      tableRow.append(createToneWordsCell(wordsInCell));
+    });
+    tableBody.append(tableRow);
+  });
+  table.append(tableBody);
+
+  return table;
+}
+
+function createCompactToneTable(captionText, firstColumnLabel, rows) {
+  const table = document.createElement("table");
+  table.className = "tone-table tone-table--compact";
+
+  const caption = document.createElement("caption");
+  caption.textContent = captionText;
+  table.append(caption);
+
+  const tableHead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  [firstColumnLabel, "単語"].forEach((label) => {
+    const columnHeader = document.createElement("th");
+    columnHeader.scope = "col";
+    columnHeader.textContent = label;
+    headerRow.append(columnHeader);
+  });
+  tableHead.append(headerRow);
+  table.append(tableHead);
+
+  const tableBody = document.createElement("tbody");
+  rows.forEach((row) => {
+    const tableRow = document.createElement("tr");
+    const rowHeader = document.createElement("th");
+    rowHeader.scope = "row";
+    rowHeader.textContent = row.label;
+    tableRow.append(rowHeader);
+    tableRow.append(createToneWordsCell(row.words));
+    tableBody.append(tableRow);
+  });
+  table.append(tableBody);
+
+  return table;
+}
+
+function renderToneCharts() {
+  elements.twoSyllableToneTable.replaceChildren(createTwoSyllableToneTable());
+  elements.oneSyllableToneTable.replaceChildren(
+    createCompactToneTable(
+      "1音節の声調別単語表",
+      "声調",
+      oneSyllableToneTable.map((item) => ({
+        label: item.tone,
+        words: item.words
+      }))
+    )
+  );
+  elements.threeSyllableToneTable.replaceChildren(
+    createCompactToneTable(
+      "3音節の声調組み合わせ表",
+      "声調の組み合わせ",
+      threeSyllableToneTable.map((item) => ({
+        label: item.tones,
+        words: [item.word]
+      }))
+    )
+  );
+  elements.longToneTable.replaceChildren(
+    createCompactToneTable(
+      "4・5音節の声調組み合わせ表",
+      "声調の組み合わせ",
+      longToneTable.map((item) => ({
+        label: item.tones,
+        words: [item.word]
+      }))
+    )
+  );
+}
+
 function showToneChartScreen(options = {}) {
   const { focus = true } = options;
   speechController.cancel();
   resetQuizState();
+  renderToneCharts();
   showOnlyScreen("toneChart");
   if (focus) {
     elements.toneChartTitle.focus();
@@ -1454,86 +1640,18 @@ function openConfirmDialog(options) {
   elements.confirmDialogButton.textContent = confirmLabel;
   elements.cancelDialogButton.textContent = cancelLabel;
   elements.confirmDialog.hidden = false;
-  updateDialogOpenState();
+  document.body.classList.add("dialog-open");
   elements.cancelDialogButton.focus();
 }
 
 function closeConfirmDialog(restoreFocus = true) {
   elements.confirmDialog.hidden = true;
-  updateDialogOpenState();
+  document.body.classList.remove("dialog-open");
   confirmDialogAction = null;
   if (restoreFocus && focusBeforeDialog instanceof HTMLElement) {
     focusBeforeDialog.focus();
   }
   focusBeforeDialog = null;
-}
-
-function updateDialogOpenState() {
-  const hasOpenDialog =
-    !elements.confirmDialog.hidden || !elements.toneChartDialog.hidden;
-  document.body.classList.toggle("dialog-open", hasOpenDialog);
-}
-
-function openToneChartDialog() {
-  if (elements.toneChartImageButton.hidden) {
-    return;
-  }
-
-  focusBeforeToneChartDialog = elements.toneChartImageButton;
-  elements.toneChartZoomViewport.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  elements.toneChartDialog.hidden = false;
-  updateDialogOpenState();
-  elements.toneChartDialogCloseButton.focus();
-}
-
-function closeToneChartDialog(restoreFocus = true) {
-  elements.toneChartDialog.hidden = true;
-  updateDialogOpenState();
-  if (restoreFocus && focusBeforeToneChartDialog instanceof HTMLElement) {
-    focusBeforeToneChartDialog.focus();
-  }
-  focusBeforeToneChartDialog = null;
-}
-
-function handleToneChartDialogKeydown(event) {
-  if (elements.toneChartDialog.hidden) {
-    return;
-  }
-
-  if (event.key === "Escape") {
-    event.preventDefault();
-    closeToneChartDialog();
-    return;
-  }
-
-  if (event.key !== "Tab") {
-    return;
-  }
-
-  const firstFocusable = elements.toneChartDialogCloseButton;
-  const lastFocusable = elements.toneChartZoomViewport;
-  if (event.shiftKey && document.activeElement === firstFocusable) {
-    event.preventDefault();
-    lastFocusable.focus();
-  } else if (!event.shiftKey && document.activeElement === lastFocusable) {
-    event.preventDefault();
-    firstFocusable.focus();
-  }
-}
-
-function handleToneChartImageError() {
-  elements.toneChartImageButton.hidden = true;
-  elements.toneChartZoomGuide.hidden = true;
-  elements.toneChartError.hidden = false;
-  if (!elements.toneChartDialog.hidden) {
-    closeToneChartDialog(false);
-  }
-}
-
-function handleToneChartImageLoad() {
-  elements.toneChartImageButton.hidden = false;
-  elements.toneChartZoomGuide.hidden = false;
-  elements.toneChartError.hidden = true;
 }
 
 function confirmDialogSelection() {
@@ -1735,17 +1853,6 @@ elements.reviewRetryButton.addEventListener("click", retryConfirmation);
 elements.reviewToQuizButton.addEventListener("click", startQuizFromReviewedWords);
 elements.wordListHomeButton.addEventListener("click", navigateHomeFromWordList);
 elements.toneChartHomeButton.addEventListener("click", navigateHomeFromToneChart);
-elements.toneChartImageButton.addEventListener("click", openToneChartDialog);
-elements.toneChartDialogCloseButton.addEventListener("click", () => closeToneChartDialog());
-elements.toneChartDialog.addEventListener("click", (event) => {
-  if (event.target === elements.toneChartDialog) {
-    closeToneChartDialog();
-  }
-});
-elements.toneChartDialog.addEventListener("keydown", handleToneChartDialogKeydown);
-elements.toneChartImage.addEventListener("load", handleToneChartImageLoad);
-elements.toneChartImage.addEventListener("error", handleToneChartImageError);
-elements.toneChartDialogImage.addEventListener("error", handleToneChartImageError);
 elements.wordSearch.addEventListener("input", updateWordSearch);
 elements.wordListLessonFilter.addEventListener("change", updateWordSearch);
 elements.confirmDialogButton.addEventListener("click", confirmDialogSelection);
@@ -1802,14 +1909,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("popstate", handlePopState);
-
-if (elements.toneChartImage.complete) {
-  if (elements.toneChartImage.naturalWidth > 0) {
-    handleToneChartImageLoad();
-  } else {
-    handleToneChartImageError();
-  }
-}
 
 applyLearningModeSelection(loadLearningMode());
 loadLastInputMode();

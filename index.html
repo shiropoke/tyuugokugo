@@ -455,33 +455,35 @@
           <p class="lead tone-chart-description">
             中国語の単語を、声調の組み合わせごとにまとめた表です。
           </p>
-          <button
-            id="tone-chart-image-button"
-            class="tone-chart-image-button"
-            type="button"
-            aria-label="声調組み合わせ表を拡大して表示する"
-            aria-describedby="tone-chart-zoom-guide"
-          >
-            <img
-              id="tone-chart-image"
-              class="tone-chart-image"
-              src="./assets/tone-combination-chart.png"
-              alt="中国語の声調の組み合わせ一覧表"
-              draggable="false"
-            >
-          </button>
-          <p id="tone-chart-zoom-guide" class="tone-chart-zoom-guide">
-            画像を押すと拡大して表示できます。
-          </p>
-          <p
-            id="tone-chart-error"
-            class="tone-chart-error"
-            role="status"
-            aria-live="polite"
-            hidden
-          >
-            声調組み合わせ表の画像を読み込めませんでした。
-          </p>
+          <section class="tone-chart-section" aria-labelledby="two-syllable-tone-title">
+            <h2 id="two-syllable-tone-title">2音節</h2>
+            <p id="tone-table-scroll-hint" class="tone-table-scroll-hint">
+              表は横にスクロールできます。
+            </p>
+            <div
+              id="two-syllable-tone-table"
+              class="tone-table-scroll"
+              role="region"
+              aria-label="2音節の声調組み合わせ表"
+              aria-describedby="tone-table-scroll-hint"
+              tabindex="0"
+            ></div>
+          </section>
+
+          <div class="tone-chart-subtables">
+            <section class="tone-chart-section" aria-labelledby="one-syllable-tone-title">
+              <h2 id="one-syllable-tone-title">1音節</h2>
+              <div id="one-syllable-tone-table"></div>
+            </section>
+            <section class="tone-chart-section" aria-labelledby="three-syllable-tone-title">
+              <h2 id="three-syllable-tone-title">3音節</h2>
+              <div id="three-syllable-tone-table"></div>
+            </section>
+            <section class="tone-chart-section" aria-labelledby="long-tone-title">
+              <h2 id="long-tone-title">4・5音節</h2>
+              <div id="long-tone-table"></div>
+            </section>
+          </div>
         </div>
       </section>
     </main>
@@ -505,38 +507,6 @@
           <button id="cancel-dialog-button" class="button button-quiet" type="button">
             クイズを続ける
           </button>
-        </div>
-      </div>
-    </div>
-
-    <div
-      id="tone-chart-dialog"
-      class="tone-chart-dialog-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="tone-chart-dialog-title"
-      hidden
-    >
-      <div class="tone-chart-dialog-panel">
-        <div class="tone-chart-dialog-header">
-          <h2 id="tone-chart-dialog-title">声調組み合わせ表の拡大表示</h2>
-          <button id="tone-chart-dialog-close-button" class="button button-quiet" type="button">
-            閉じる
-          </button>
-        </div>
-        <div
-          id="tone-chart-zoom-viewport"
-          class="tone-chart-zoom-viewport"
-          tabindex="0"
-          aria-label="拡大した声調組み合わせ表のスクロール領域"
-        >
-          <img
-            id="tone-chart-dialog-image"
-            class="tone-chart-dialog-image"
-            src="./assets/tone-combination-chart.png"
-            alt="中国語の声調の組み合わせ一覧表の拡大表示"
-            draggable="false"
-          >
         </div>
       </div>
     </div>
