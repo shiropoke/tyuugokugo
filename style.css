@@ -83,10 +83,37 @@ button {
 }
 
 .home-screen {
+  display: grid;
+  gap: 24px;
   width: min(calc(100% - 32px), 620px);
   min-height: auto;
   margin-top: max(24px, env(safe-area-inset-top));
   margin-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.home-screen > .card {
+  width: 100%;
+  min-width: 0;
+}
+
+.home-feature-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.grammar-home-lead {
+  margin-bottom: 28px;
+}
+
+.grammar-home-card {
+  border-top: 4px solid var(--blue);
+}
+
+.grammar-home-card > .button-primary {
+  width: 100%;
 }
 
 .quiz-layout {
@@ -570,6 +597,21 @@ input:focus-visible {
   line-height: 1.45;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.grammar-question {
+  width: 100%;
+  margin-bottom: 0;
+  color: var(--text);
+  font-size: clamp(1.5rem, 6vw, 2.65rem);
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.grammar-pronunciation-button {
+  margin-top: 16px;
 }
 
 .text-button {
@@ -1320,10 +1362,14 @@ form label {
 }
 
 @media (max-width: 480px) {
-  .home-screen.card {
+  .home-screen {
     width: calc(100% - 20px);
     margin-top: max(12px, env(safe-area-inset-top));
     margin-bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 16px;
+  }
+
+  .home-screen > .card {
     padding: 22px 16px;
     border-radius: 10px;
   }

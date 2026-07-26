@@ -103,6 +103,8 @@ const SCREEN_HASHES = {
   quiz: "#quiz",
   result: "#result",
   reviewResult: "#confirmation-result",
+  grammarQuiz: "#grammar-quiz",
+  grammarResult: "#grammar-result",
   wordList: "#words",
   toneChart: "#tones"
 };
@@ -113,6 +115,8 @@ const elements = {
     quiz: document.querySelector("#quiz-screen"),
     result: document.querySelector("#result-screen"),
     reviewResult: document.querySelector("#review-result-screen"),
+    grammarQuiz: document.querySelector("#grammar-quiz-screen"),
+    grammarResult: document.querySelector("#grammar-result-screen"),
     wordList: document.querySelector("#word-list-screen"),
     toneChart: document.querySelector("#tone-chart-screen")
   },
@@ -607,6 +611,7 @@ function toggleQuizMenu() {
 
 function showOnlyScreen(screenName) {
   closeQuizMenu(false);
+  window.grammarApp?.closeMenu(false);
   if (!elements.confirmDialog.hidden) {
     closeConfirmDialog(false);
   }
@@ -624,9 +629,11 @@ function showHomeScreen(options = {}) {
   speechController.cancel();
   if (reset) {
     resetQuizState();
+    window.grammarApp?.resetState();
   }
   updateHomeModeControls();
   updateLessonSelectionUI({ save: false });
+  window.grammarApp?.onHomeShown();
   showOnlyScreen("home");
   if (focus) {
     elements.startButton.focus();
@@ -887,6 +894,13 @@ function renderScreenFromHistory(screenName, options = {}) {
     showWordListScreen({ focus, resetSearch: true });
   } else if (screenName === "toneChart") {
     showToneChartScreen({ focus });
+  } else if (screenName === "grammarQuiz" && window.grammarApp?.state.questions.length > 0) {
+    window.grammarApp.showQuizScreen();
+  } else if (
+    screenName === "grammarResult" &&
+    window.grammarApp?.state.answerHistory.length > 0
+  ) {
+    window.grammarApp.showResultScreen({ focus });
   } else if (screenName === "quiz" && quizState.questions.length > 0) {
     showQuizScreen();
   } else if (screenName === "result" && quizState.answerHistory.length > 0) {
@@ -948,7 +962,9 @@ function initializeHistory() {
       : null;
   let initialScreen = stateScreen || getScreenFromHash();
 
-  if (["quiz", "result", "reviewResult"].includes(initialScreen)) {
+  if (
+    ["quiz", "result", "reviewResult", "grammarQuiz", "grammarResult"].includes(initialScreen)
+  ) {
     initialScreen = "home";
   }
 
@@ -1826,6 +1842,11 @@ function handlePopState(event) {
     event.state?.app === HISTORY_APP_ID
       ? event.state.screen
       : getScreenFromHash();
+
+  if (currentScreenName === "grammarQuiz" && targetScreen !== "grammarQuiz") {
+    window.grammarApp?.handlePopStateExit(targetScreen);
+    return;
+  }
 
   if (currentScreenName === "quiz" && targetScreen !== "quiz") {
     if (isConfirmationMode() && quizState.reviewedHistory.length > 0) {

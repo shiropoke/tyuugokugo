@@ -3,17 +3,21 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="拼音を見て、対応する簡体字を答える中国語学習クイズです。">
+    <meta
+      name="description"
+      content="拼音・日本語から簡体字を学び、日本語文から中国語文へ直す練習もできる中国語学習サイトです。"
+    >
     <link rel="icon" href="data:,">
-    <title>中国語 拼音クイズ</title>
+    <title>中国語学習クイズ</title>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
     <main class="app-shell">
-      <section id="home-screen" class="screen home-screen card" aria-labelledby="home-title">
-        <p class="eyebrow">PINYIN PRACTICE</p>
-        <h1 id="home-title">中国語 拼音クイズ</h1>
-        <p class="lead">拼音や日本語の意味から、対応する簡体字を学習できます</p>
+      <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
+        <div class="home-quiz-card card">
+          <p class="eyebrow">PINYIN PRACTICE</p>
+          <h1 id="home-title">中国語 拼音クイズ</h1>
+          <p class="lead">拼音や日本語の意味から、対応する簡体字を学習できます</p>
 
         <section class="handwriting-notice" aria-labelledby="handwriting-notice-title">
           <h2 id="handwriting-notice-title">手書き入力について</h2>
@@ -162,7 +166,105 @@
             </button>
           </div>
         </div>
-        <p id="saved-mistakes-note" class="saved-note" hidden></p>
+          <p id="saved-mistakes-note" class="saved-note" hidden></p>
+        </div>
+
+        <section
+          class="grammar-home-card card"
+          aria-labelledby="grammar-home-title"
+        >
+          <p class="eyebrow">GRAMMAR PRACTICE</p>
+          <h2 id="grammar-home-title" class="home-feature-title">中国語 文法クイズ</h2>
+          <p class="lead grammar-home-lead">
+            日本語の文章を見て、対応する中国語の文章を入力します。
+          </p>
+
+          <fieldset class="lesson-selector">
+            <legend>出題する課</legend>
+            <div class="lesson-choice-grid">
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="1" checked>
+                <span>第1課</span>
+              </label>
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="2" checked>
+                <span>第2課</span>
+              </label>
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="3" checked>
+                <span>第3課</span>
+              </label>
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="4" checked>
+                <span>第4課</span>
+              </label>
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="5" checked>
+                <span>第5課</span>
+              </label>
+              <label class="lesson-choice">
+                <input type="checkbox" name="grammar-lesson" value="6" checked>
+                <span>第6課</span>
+              </label>
+            </div>
+            <label class="lesson-choice lesson-choice-all">
+              <input id="grammar-all-lessons-checkbox" type="checkbox" checked>
+              <span>全課</span>
+            </label>
+            <div
+              class="lesson-selection-summary"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <p id="grammar-selected-lessons-text">選択中：全課</p>
+              <p id="grammar-candidate-count">出題候補：73項目</p>
+              <p id="grammar-actual-question-count">実際の出題数：10問</p>
+            </div>
+            <p
+              id="grammar-lesson-error"
+              class="input-error"
+              role="alert"
+              aria-live="assertive"
+              hidden
+            >
+              出題する課を1つ以上選択してください。
+            </p>
+          </fieldset>
+
+          <fieldset class="question-count">
+            <legend>出題数</legend>
+            <div class="choice-grid">
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="10" checked>
+                <span>10問</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="20">
+                <span>20問</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="30">
+                <span>30問</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="40">
+                <span>40問</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="50">
+                <span>50問</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="grammar-question-count" value="all">
+                <span>全問</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <button id="grammar-start-button" class="button button-primary" type="button">
+            文法クイズを始める
+          </button>
+        </section>
       </section>
 
       <section id="quiz-screen" class="screen quiz-layout" aria-labelledby="quiz-title" hidden>
@@ -314,6 +416,144 @@
         </footer>
       </section>
 
+      <section
+        id="grammar-quiz-screen"
+        class="screen quiz-layout"
+        aria-labelledby="grammar-quiz-title"
+        hidden
+      >
+        <header class="quiz-topbar">
+          <button id="grammar-quiz-home-button" class="button button-quiet button-compact" type="button">
+            ホームに戻る
+          </button>
+          <h1 id="grammar-quiz-title" class="visually-hidden">中国語 文法クイズ</h1>
+          <div class="quiz-status" aria-label="文法クイズの進行状況">
+            <p>
+              <span id="grammar-current-number">1</span> /
+              <span id="grammar-total-number">10</span> 問
+            </p>
+            <p>正解 <strong id="grammar-correct-count">0</strong> 問</p>
+          </div>
+          <div id="grammar-quiz-menu" class="quiz-menu">
+            <button
+              id="grammar-quiz-menu-button"
+              class="button button-quiet button-compact"
+              type="button"
+              aria-label="文法クイズメニューを開く"
+              aria-expanded="false"
+              aria-controls="grammar-quiz-menu-panel"
+            >
+              その他
+            </button>
+            <div id="grammar-quiz-menu-panel" class="quiz-menu-panel" role="menu" hidden>
+              <button id="grammar-restart-button" class="quiz-menu-item" type="button" role="menuitem">
+                最初からやり直す
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="quiz-session-meta">
+          <p id="grammar-target-lessons">対象：全課</p>
+          <p id="grammar-current-context">第1課・POINT 1</p>
+        </div>
+        <div
+          id="grammar-progress-bar"
+          class="progress"
+          role="progressbar"
+          aria-label="文法クイズの進捗"
+          aria-valuemin="0"
+          aria-valuemax="10"
+          aria-valuenow="0"
+        >
+          <span id="grammar-progress-fill"></span>
+        </div>
+
+        <section
+          class="quiz-question-area grammar-question-area"
+          aria-labelledby="grammar-prompt-label grammar-japanese-question"
+        >
+          <h2 id="grammar-prompt-label" class="prompt-label">この日本語を中国語にしてください</h2>
+          <p id="grammar-japanese-question" class="grammar-question" lang="ja"></p>
+        </section>
+
+        <form id="grammar-answer-form" class="answer-section" novalidate>
+          <label for="grammar-answer-input">中国語（簡体字）</label>
+          <input
+            id="grammar-answer-input"
+            class="answer-input chinese-text"
+            name="grammar-answer"
+            type="text"
+            lang="zh-CN"
+            inputmode="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            enterkeyhint="done"
+          >
+          <p id="grammar-input-error" class="input-error" role="alert" hidden>
+            中国語を入力してください。
+          </p>
+          <div class="answer-actions">
+            <button id="grammar-check-button" class="button button-primary" type="submit">
+              答え合わせ
+            </button>
+            <button id="grammar-skip-button" class="button button-secondary" type="button">
+              わからない
+            </button>
+          </div>
+        </form>
+
+        <section
+          id="grammar-feedback"
+          class="feedback grammar-feedback"
+          aria-live="polite"
+          aria-atomic="true"
+          hidden
+        >
+          <p id="grammar-judgement" class="judgement"></p>
+          <dl class="answer-details">
+            <div>
+              <dt>正解の中国語</dt>
+              <dd id="grammar-correct-answer" class="chinese-text" lang="zh-CN"></dd>
+            </div>
+            <div>
+              <dt>あなたの解答</dt>
+              <dd id="grammar-user-answer" class="chinese-text" lang="zh-CN"></dd>
+            </div>
+            <div>
+              <dt>日本語訳</dt>
+              <dd id="grammar-feedback-japanese"></dd>
+            </div>
+            <div>
+              <dt>課</dt>
+              <dd id="grammar-feedback-lesson"></dd>
+            </div>
+            <div>
+              <dt>POINT</dt>
+              <dd id="grammar-feedback-point"></dd>
+            </div>
+          </dl>
+          <button
+            id="grammar-pronunciation-button"
+            class="pronunciation-button grammar-pronunciation-button"
+            type="button"
+            aria-label="正解の中国語を発音する"
+            hidden
+          >
+            発音を聞く
+          </button>
+          <p id="grammar-speech-message" class="support-message" data-speech-message hidden></p>
+        </section>
+
+        <footer class="quiz-navigation">
+          <button id="grammar-next-button" class="button button-primary" type="button" hidden>
+            次の問題
+          </button>
+        </footer>
+      </section>
+
       <section id="result-screen" class="screen screen-wide content-screen" aria-labelledby="result-title" hidden>
         <div class="screen-top-actions">
           <button id="result-home-top-button" class="button button-quiet button-compact" type="button">
@@ -418,6 +658,66 @@
           </button>
           <button id="review-to-quiz-button" class="button button-secondary" type="button">
             この単語でクイズする
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="grammar-result-screen"
+        class="screen screen-wide content-screen"
+        aria-labelledby="grammar-result-title"
+        hidden
+      >
+        <div class="screen-top-actions">
+          <button
+            id="grammar-result-home-top-button"
+            class="button button-quiet button-compact"
+            type="button"
+          >
+            ホームに戻る
+          </button>
+        </div>
+        <h1 id="grammar-result-title" tabindex="-1">文法クイズ結果</h1>
+        <p id="grammar-result-description" class="result-description" hidden>
+          クイズを途中で終了しました。ここまでに解答した問題の結果です。
+        </p>
+
+        <div class="result-summary" aria-label="文法クイズ結果の集計">
+          <div>
+            <strong id="grammar-result-answered">0</strong>
+            <span>解答済み</span>
+          </div>
+          <div>
+            <strong id="grammar-result-correct">0</strong>
+            <span>正解</span>
+          </div>
+          <div>
+            <strong id="grammar-result-incorrect">0</strong>
+            <span>不正解</span>
+          </div>
+          <div>
+            <strong id="grammar-result-rate">0%</strong>
+            <span>正答率</span>
+          </div>
+        </div>
+        <p id="grammar-result-planned" class="result-planned" hidden></p>
+        <div class="session-meta" aria-label="文法クイズの出題条件">
+          <p id="grammar-result-target-lessons">対象：全課</p>
+          <p id="grammar-result-question-count">出題数：0問</p>
+        </div>
+        <p id="grammar-result-speech-message" class="support-message" data-speech-message hidden></p>
+
+        <section class="results" aria-labelledby="grammar-result-list-title">
+          <h2 id="grammar-result-list-title">解答した文法問題</h2>
+          <ol id="grammar-result-list" class="result-list"></ol>
+        </section>
+
+        <div class="button-stack result-actions">
+          <button id="grammar-result-home-button" class="button button-quiet" type="button">
+            ホームに戻る
+          </button>
+          <button id="grammar-retry-button" class="button button-primary" type="button">
+            もう一度挑戦
           </button>
         </div>
       </section>
@@ -535,7 +835,9 @@
       <p class="noscript-message">このクイズを利用するにはJavaScriptを有効にしてください。</p>
     </noscript>
     <script src="./words.js"></script>
+    <script src="./grammar-data.js"></script>
     <script src="./speech.js"></script>
+    <script src="./grammar.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>
