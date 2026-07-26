@@ -2,8 +2,20 @@
 
 const STORAGE_KEY = "tyuugokugo-mistake-words";
 const SELECTED_LESSONS_STORAGE_KEY = "tyuugokugo-selected-lessons";
+const LEARNING_MODE_STORAGE_KEY = "tyuugokugo-learning-mode";
+const LAST_INPUT_MODE_STORAGE_KEY = "tyuugokugo-last-input-mode";
 const HISTORY_APP_ID = "tyuugokugo";
 const ALL_LESSONS = [1, 2, 3, 4, 5, 6];
+const LEARNING_MODES = {
+  PINYIN_TO_HANZI: "pinyin-to-hanzi",
+  MEANING_TO_HANZI: "meaning-to-hanzi",
+  REVIEW: "review"
+};
+const LEARNING_MODE_LABELS = {
+  [LEARNING_MODES.PINYIN_TO_HANZI]: "拼音→簡体字",
+  [LEARNING_MODES.MEANING_TO_HANZI]: "日本語→簡体字",
+  [LEARNING_MODES.REVIEW]: "確認モード"
+};
 const SESSION_MODES = {
   NORMAL: "normal",
   MISTAKE_REVIEW: "mistake-review",
@@ -47,11 +59,13 @@ const elements = {
   scoreStatus: document.querySelector("#score-status"),
   correctCount: document.querySelector("#correct-count"),
   confirmationStatus: document.querySelector("#confirmation-status"),
+  quizLearningMode: document.querySelector("#quiz-learning-mode"),
   quizTargetLessons: document.querySelector("#quiz-target-lessons"),
   progressBar: document.querySelector("#progress-bar"),
   progressFill: document.querySelector("#progress-fill"),
   promptLabel: document.querySelector("#prompt-label"),
-  pinyin: document.querySelector("#pinyin"),
+  questionContent: document.querySelector("#question-content"),
+  quizTools: document.querySelector("#quiz-tools"),
   quizPronunciationButton: document.querySelector("#quiz-pronunciation-button"),
   hintButton: document.querySelector("#hint-button"),
   hintText: document.querySelector("#hint-text"),
@@ -63,7 +77,9 @@ const elements = {
   feedback: document.querySelector("#feedback"),
   judgement: document.querySelector("#judgement"),
   correctAnswer: document.querySelector("#correct-answer"),
+  feedbackPinyin: document.querySelector("#feedback-pinyin"),
   answerMeaning: document.querySelector("#answer-meaning"),
+  feedbackUserAnswer: document.querySelector("#feedback-user-answer"),
   nextButton: document.querySelector("#next-button"),
   confirmationControls: document.querySelector("#confirmation-controls"),
   showAnswerButton: document.querySelector("#show-answer-button"),
@@ -80,6 +96,7 @@ const elements = {
   resultIncorrect: document.querySelector("#result-incorrect"),
   resultRate: document.querySelector("#result-rate"),
   resultPlanned: document.querySelector("#result-planned"),
+  resultLearningMode: document.querySelector("#result-learning-mode"),
   resultTargetLessons: document.querySelector("#result-target-lessons"),
   resultQuestionCount: document.querySelector("#result-question-count"),
   perfectMessage: document.querySelector("#perfect-message"),
@@ -91,6 +108,7 @@ const elements = {
   reviewResultDescription: document.querySelector("#review-result-description"),
   reviewedCount: document.querySelector("#reviewed-count"),
   reviewPlannedCount: document.querySelector("#review-planned-count"),
+  reviewLearningMode: document.querySelector("#review-learning-mode"),
   reviewTargetLessons: document.querySelector("#review-target-lessons"),
   reviewQuestionCount: document.querySelector("#review-question-count"),
   reviewResultList: document.querySelector("#review-result-list"),
@@ -114,6 +132,7 @@ const elements = {
 
 const quizState = {
   mode: SESSION_MODES.NORMAL,
+  learningMode: LEARNING_MODES.PINYIN_TO_HANZI,
   originalMode: "10",
   selectedLessons: [],
   questions: [],
@@ -135,11 +154,16 @@ let focusBeforeDialog = null;
 let inputFocusScrollTimer = null;
 
 function isConfirmationMode() {
-  return quizState.mode === SESSION_MODES.CONFIRMATION;
+  return quizState.learningMode === LEARNING_MODES.REVIEW;
+}
+
+function isMeaningToHanziMode() {
+  return quizState.learningMode === LEARNING_MODES.MEANING_TO_HANZI;
 }
 
 function resetQuizState() {
   quizState.mode = SESSION_MODES.NORMAL;
+  quizState.learningMode = LEARNING_MODES.PINYIN_TO_HANZI;
   quizState.originalMode = "10";
   quizState.selectedLessons = [];
   quizState.questions = [];
@@ -175,9 +199,11 @@ function normalizeAnswer(value) {
 
 function isCorrectAnswer(input, question) {
   const normalizedInput = normalizeAnswer(input);
-  const acceptedAnswers = question.answers ? [...question.answers] : [question.word];
+  const acceptedAnswers = [question.word, ...(question.answers || [])];
 
-  return acceptedAnswers.some((answer) => normalizeAnswer(answer) === normalizedInput);
+  return [...new Set(acceptedAnswers)].some(
+    (answer) => normalizeAnswer(answer) === normalizedInput
+  );
 }
 
 function loadSavedMistakeWords() {
@@ -248,6 +274,115 @@ function saveSelectedLessons(selectedLessons) {
   }
 }
 
+function normalizeStoredLearningMode(value) {
+  const compatibleModes = {
+    quiz: LEARNING_MODES.PINYIN_TO_HANZI,
+    pinyin: LEARNING_MODES.PINYIN_TO_HANZI,
+    confirmation: LEARNING_MODES.REVIEW,
+    [LEARNING_MODES.PINYIN_TO_HANZI]: LEARNING_MODES.PINYIN_TO_HANZI,
+    [LEARNING_MODES.MEANING_TO_HANZI]: LEARNING_MODES.MEANING_TO_HANZI,
+    [LEARNING_MODES.REVIEW]: LEARNING_MODES.REVIEW
+  };
+
+  return compatibleModes[value] || LEARNING_MODES.PINYIN_TO_HANZI;
+}
+
+function normalizeInputLearningMode(value) {
+  return value === LEARNING_MODES.MEANING_TO_HANZI
+    ? LEARNING_MODES.MEANING_TO_HANZI
+    : LEARNING_MODES.PINYIN_TO_HANZI;
+}
+
+function loadLearningMode() {
+  try {
+    const storedMode = localStorage.getItem(LEARNING_MODE_STORAGE_KEY);
+    const normalizedMode = normalizeStoredLearningMode(storedMode);
+    if (storedMode !== normalizedMode) {
+      saveLearningMode(normalizedMode);
+    }
+    return normalizedMode;
+  } catch (error) {
+    return LEARNING_MODES.PINYIN_TO_HANZI;
+  }
+}
+
+function saveLearningMode(learningMode) {
+  if (!Object.hasOwn(LEARNING_MODE_LABELS, learningMode)) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(LEARNING_MODE_STORAGE_KEY, learningMode);
+  } catch (error) {
+    // 保存できない環境でも、現在のモードで学習を続行します。
+  }
+}
+
+function loadLastInputMode() {
+  try {
+    const storedMode = localStorage.getItem(LAST_INPUT_MODE_STORAGE_KEY);
+    const normalizedMode = normalizeInputLearningMode(storedMode);
+    if (storedMode !== normalizedMode) {
+      saveLastInputMode(normalizedMode);
+    }
+    return normalizedMode;
+  } catch (error) {
+    return LEARNING_MODES.PINYIN_TO_HANZI;
+  }
+}
+
+function saveLastInputMode(learningMode) {
+  if (
+    learningMode !== LEARNING_MODES.PINYIN_TO_HANZI &&
+    learningMode !== LEARNING_MODES.MEANING_TO_HANZI
+  ) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(LAST_INPUT_MODE_STORAGE_KEY, learningMode);
+  } catch (error) {
+    // 保存できない環境でも、現在のモードで学習を続行します。
+  }
+}
+
+function getSelectedLearningMode() {
+  return normalizeStoredLearningMode(
+    document.querySelector('input[name="learning-mode"]:checked')?.value
+  );
+}
+
+function applyLearningModeSelection(learningMode) {
+  const safeMode = normalizeStoredLearningMode(learningMode);
+  elements.learningModeInputs.forEach((input) => {
+    input.checked = input.value === safeMode;
+  });
+}
+
+function getLearningModeLabel(learningMode) {
+  return LEARNING_MODE_LABELS[learningMode] || LEARNING_MODE_LABELS[LEARNING_MODES.PINYIN_TO_HANZI];
+}
+
+function getMistakeReviewLearningMode(selectedMode = getSelectedLearningMode()) {
+  return selectedMode === LEARNING_MODES.MEANING_TO_HANZI
+    ? LEARNING_MODES.MEANING_TO_HANZI
+    : LEARNING_MODES.PINYIN_TO_HANZI;
+}
+
+function getQuestionPrompt(question, learningMode) {
+  if (learningMode === LEARNING_MODES.MEANING_TO_HANZI) {
+    return {
+      type: "meaning",
+      value: question.meaning
+    };
+  }
+
+  return {
+    type: "pinyin",
+    value: question.pinyin
+  };
+}
+
 function getSelectedLessonsFromControls() {
   return elements.lessonInputs
     .filter((input) => input.checked)
@@ -316,7 +451,7 @@ function updateHomeReviewControls(selectedLessons = getSelectedLessonsFromContro
   elements.savedMistakesNote.hidden = !hasSavedMistakes;
   elements.savedMistakesNote.textContent = hasSavedMistakes
     ? selectedSavedCount > 0
-      ? `選択中の復習対象：${selectedSavedCount}語`
+      ? `選択中の復習対象：${selectedSavedCount}語（${getLearningModeLabel(getMistakeReviewLearningMode())}）`
       : "選択した課には、復習する単語がありません。"
     : "";
 }
@@ -345,11 +480,22 @@ function updateLessonSelectionUI(options = {}) {
   }
 }
 
-function updateHomeModeControls() {
-  const selectedMode =
-    document.querySelector('input[name="learning-mode"]:checked')?.value || "quiz";
-  elements.startButton.textContent =
-    selectedMode === "confirmation" ? "確認を始める" : "クイズを始める";
+function updateHomeModeControls(options = {}) {
+  const { save = false } = options;
+  const selectedMode = getSelectedLearningMode();
+  const buttonLabels = {
+    [LEARNING_MODES.PINYIN_TO_HANZI]: "拼音→簡体字を始める",
+    [LEARNING_MODES.MEANING_TO_HANZI]: "日本語→簡体字を始める",
+    [LEARNING_MODES.REVIEW]: "確認を始める"
+  };
+
+  elements.startButton.textContent = buttonLabels[selectedMode];
+  updateHomeReviewControls();
+
+  if (save) {
+    saveLearningMode(selectedMode);
+    saveLastInputMode(selectedMode);
+  }
 }
 
 function closeQuizMenu(restoreFocus = false) {
@@ -431,6 +577,8 @@ function showResultScreen(options = {}) {
   elements.resultPlanned.textContent = quizState.isInterrupted
     ? `予定問題数：${quizState.totalPlannedQuestions}問`
     : "";
+  elements.resultLearningMode.textContent =
+    `学習モード：${getLearningModeLabel(quizState.learningMode)}`;
   elements.resultTargetLessons.textContent =
     `対象：${formatLessons(quizState.selectedLessons)}`;
   elements.resultQuestionCount.textContent =
@@ -457,6 +605,8 @@ function showReviewResultScreen(options = {}) {
   elements.reviewResultDescription.hidden = !quizState.isInterrupted;
   elements.reviewedCount.textContent = String(quizState.reviewedHistory.length);
   elements.reviewPlannedCount.textContent = String(quizState.totalPlannedQuestions);
+  elements.reviewLearningMode.textContent =
+    `学習モード：${getLearningModeLabel(LEARNING_MODES.REVIEW)}`;
   elements.reviewTargetLessons.textContent =
     `対象：${formatLessons(quizState.selectedLessons)}`;
   elements.reviewQuestionCount.textContent =
@@ -596,13 +746,13 @@ function initializeHistory() {
 
 function getSelectedSessionConfiguration() {
   const selectedCount = document.querySelector('input[name="question-count"]:checked');
-  const selectedLearningMode = document.querySelector('input[name="learning-mode"]:checked');
   const originalMode = selectedCount?.value || "10";
-  const learningMode = selectedLearningMode?.value === "confirmation"
+  const learningMode = getSelectedLearningMode();
+  const sessionMode = learningMode === LEARNING_MODES.REVIEW
     ? SESSION_MODES.CONFIRMATION
     : SESSION_MODES.NORMAL;
 
-  return { originalMode, learningMode };
+  return { originalMode, learningMode, sessionMode };
 }
 
 function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, options = {}) {
@@ -614,6 +764,9 @@ function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, o
   const {
     historyAction = "push",
     originalMode = mode === SESSION_MODES.MISTAKE_REVIEW ? "mistake-review" : String(questionLimit),
+    learningMode = mode === SESSION_MODES.CONFIRMATION
+      ? LEARNING_MODES.REVIEW
+      : LEARNING_MODES.PINYIN_TO_HANZI,
     selectedLessons = [...new Set(sourceWords.map((item) => item.lesson))].sort(
       (first, second) => first - second
     )
@@ -621,6 +774,7 @@ function startSession(sourceWords, questionLimit, mode = SESSION_MODES.NORMAL, o
   const safeLimit = Math.min(questionLimit, sourceWords.length);
 
   quizState.mode = mode;
+  quizState.learningMode = learningMode;
   quizState.originalMode = originalMode;
   quizState.selectedLessons = [...selectedLessons];
   quizState.sourceWords = [...sourceWords];
@@ -657,15 +811,17 @@ function startSelectedSession() {
   const questionLimit = configuration.originalMode === "all"
     ? availableWords.length
     : Number(configuration.originalMode);
-  startSession(availableWords, questionLimit, configuration.learningMode, {
+  startSession(availableWords, questionLimit, configuration.sessionMode, {
     historyAction: "push",
     originalMode: configuration.originalMode,
+    learningMode: configuration.learningMode,
     selectedLessons
   });
 }
 
 function startSavedMistakesReview() {
   const selectedLessons = getSelectedLessonsFromControls();
+  const reviewLearningMode = getMistakeReviewLearningMode();
   const reviewQuestions = getSavedMistakeQuestions(selectedLessons);
   if (reviewQuestions.length === 0) {
     elements.lessonSelectionError.textContent =
@@ -677,6 +833,7 @@ function startSavedMistakesReview() {
   startSession(reviewQuestions, reviewQuestions.length, SESSION_MODES.MISTAKE_REVIEW, {
     historyAction: "push",
     originalMode: "mistake-review",
+    learningMode: reviewLearningMode,
     selectedLessons
   });
 }
@@ -694,6 +851,7 @@ function startCurrentMistakesReview() {
   startSession(reviewQuestions, reviewQuestions.length, SESSION_MODES.MISTAKE_REVIEW, {
     historyAction: "replace",
     originalMode: "mistake-review",
+    learningMode: normalizeInputLearningMode(quizState.learningMode),
     selectedLessons
   });
 }
@@ -702,6 +860,7 @@ function retryQuiz() {
   startSession(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
     historyAction: "replace",
     originalMode: quizState.originalMode,
+    learningMode: quizState.learningMode,
     selectedLessons: quizState.selectedLessons
   });
 }
@@ -714,6 +873,7 @@ function retryConfirmation() {
     {
       historyAction: "replace",
       originalMode: quizState.originalMode,
+      learningMode: LEARNING_MODES.REVIEW,
       selectedLessons: quizState.selectedLessons
     }
   );
@@ -723,6 +883,7 @@ function restartCurrentSession() {
   startSession(quizState.sourceWords, quizState.totalPlannedQuestions, quizState.mode, {
     historyAction: "replace",
     originalMode: quizState.originalMode,
+    learningMode: quizState.learningMode,
     selectedLessons: quizState.selectedLessons
   });
 }
@@ -742,6 +903,7 @@ function startQuizFromReviewedWords() {
   startSession(reviewedWords, reviewedWords.length, SESSION_MODES.CONFIRMED_QUIZ, {
     historyAction: "replace",
     originalMode: "confirmed-words",
+    learningMode: loadLastInputMode(),
     selectedLessons
   });
 }
@@ -751,6 +913,8 @@ function renderQuestion() {
   const currentNumber = quizState.currentIndex + 1;
   const totalQuestions = quizState.questions.length;
   const confirmationMode = isConfirmationMode();
+  const meaningMode = isMeaningToHanziMode();
+  const prompt = getQuestionPrompt(question, quizState.learningMode);
 
   speechController.cancel();
   closeQuizMenu(false);
@@ -761,6 +925,8 @@ function renderQuestion() {
   elements.scoreStatus.hidden = confirmationMode;
   elements.confirmationStatus.hidden = !confirmationMode;
   elements.correctCount.textContent = String(quizState.correctCount);
+  elements.quizLearningMode.textContent =
+    `学習モード：${getLearningModeLabel(quizState.learningMode)}`;
   elements.quizTargetLessons.textContent =
     `対象：${formatLessons(quizState.selectedLessons)}`;
   elements.progressBar.setAttribute("aria-valuemax", String(totalQuestions));
@@ -768,12 +934,20 @@ function renderQuestion() {
   elements.progressFill.style.width = `${(quizState.currentIndex / totalQuestions) * 100}%`;
   elements.promptLabel.textContent = confirmationMode
     ? "この拼音の答えを確認"
-    : "この拼音の中国語は？";
-  elements.pinyin.textContent = question.pinyin;
+    : meaningMode
+      ? "日本語の意味に対応する簡体字は？"
+      : "この拼音の簡体字は？";
+  elements.questionContent.textContent = prompt.value;
+  elements.questionContent.className = meaningMode
+    ? "question-content meaning-question"
+    : "question-content pinyin";
+  elements.questionContent.lang = meaningMode ? "ja" : "zh-Latn";
   elements.quizPronunciationButton.setAttribute("aria-label", `${question.word}の発音を聞く`);
   elements.hintText.textContent = question.meaning;
   elements.hintText.hidden = true;
-  elements.hintButton.hidden = confirmationMode;
+  elements.quizTools.hidden = meaningMode;
+  elements.quizPronunciationButton.hidden = false;
+  elements.hintButton.hidden = confirmationMode || meaningMode;
   elements.hintButton.setAttribute("aria-expanded", "false");
   elements.hintButton.textContent = "日本語のヒントを見る";
   elements.feedback.hidden = true;
@@ -782,6 +956,8 @@ function renderQuestion() {
   elements.answerForm.hidden = confirmationMode;
   elements.confirmationControls.hidden = !confirmationMode;
   elements.quizNavigation.hidden = confirmationMode;
+  elements.feedbackPinyin.textContent = "";
+  elements.feedbackUserAnswer.textContent = "";
 
   if (confirmationMode) {
     elements.showAnswerButton.hidden = false;
@@ -845,6 +1021,7 @@ function submitAnswer(event) {
 
 function recordAnswer(question, userAnswer, wasCorrect, skipped) {
   const questionNumber = quizState.currentIndex + 1;
+  const prompt = getQuestionPrompt(question, quizState.learningMode);
   const alreadyRecorded = quizState.answerHistory.some(
     (answer) => answer.questionNumber === questionNumber
   );
@@ -855,6 +1032,9 @@ function recordAnswer(question, userAnswer, wasCorrect, skipped) {
 
   quizState.answerHistory.push({
     questionNumber,
+    learningMode: quizState.learningMode,
+    promptType: prompt.type,
+    prompt: prompt.value,
     word: question.word,
     pinyin: question.pinyin,
     meaning: question.meaning,
@@ -891,7 +1071,13 @@ function showAnswerResult(wasCorrect, skipped = false, userAnswer = "") {
   elements.feedback.classList.add(wasCorrect ? "correct" : "incorrect");
   elements.judgement.textContent = wasCorrect ? "正解！" : "不正解";
   elements.correctAnswer.textContent = question.word;
+  elements.feedbackPinyin.textContent = question.pinyin;
   elements.answerMeaning.textContent = question.meaning;
+  elements.feedbackUserAnswer.textContent = skipped ? "未回答" : userAnswer;
+  if (isMeaningToHanziMode()) {
+    elements.quizTools.hidden = false;
+    elements.hintButton.hidden = true;
+  }
   elements.nextButton.hidden = false;
   elements.nextButton.focus();
 }
@@ -1055,19 +1241,29 @@ function renderResultList() {
     details.className = "result-details";
     pronunciationButton.className = "pronunciation-button pronunciation-button-small";
 
-    questionNumber.textContent = `解答 ${index + 1}`;
+    questionNumber.textContent = `問題 ${answer.questionNumber || index + 1}`;
     status.textContent = answer.isCorrect ? "正解" : "不正解";
     header.append(questionNumber, status);
 
+    const promptLabel = answer.promptType === "meaning"
+      ? "出題された日本語"
+      : "出題された拼音";
+
     details.append(
       createResultDetail("課", `第${answer.lesson}課`),
+      createResultDetail(promptLabel, answer.prompt, {
+        lang: answer.promptType === "meaning" ? "ja" : "zh-Latn"
+      }),
+      createResultDetail("意味", answer.meaning),
+      createResultDetail("正解の簡体字", answer.word, {
+        className: "chinese-text",
+        lang: "zh-CN"
+      }),
       createResultDetail("拼音", answer.pinyin, { lang: "zh-Latn" }),
-      createResultDetail("正解", answer.word, { className: "chinese-text", lang: "zh-Hans" }),
       createResultDetail("あなたの解答", answer.skipped ? "未回答" : answer.userAnswer, {
         className: "chinese-text",
-        lang: "zh-Hans"
-      }),
-      createResultDetail("意味", answer.meaning)
+        lang: "zh-CN"
+      })
     );
 
     speechController.prepareButton(pronunciationButton, answer.word, "🔊 発音");
@@ -1380,7 +1576,7 @@ function handlePopState(event) {
 }
 
 elements.learningModeInputs.forEach((input) => {
-  input.addEventListener("change", updateHomeModeControls);
+  input.addEventListener("change", () => updateHomeModeControls({ save: true }));
 });
 elements.lessonInputs.forEach((input) => {
   input.addEventListener("change", () => updateLessonSelectionUI());
@@ -1483,6 +1679,8 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("popstate", handlePopState);
 
+applyLearningModeSelection(loadLearningMode());
+loadLastInputMode();
 applyLessonSelection(loadSelectedLessons());
 updateSpeechAvailability();
 updateHomeModeControls();

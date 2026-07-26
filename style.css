@@ -195,7 +195,7 @@ h2 {
 
 .mode-choice-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -484,13 +484,21 @@ input:focus-visible {
   background: #e3e9ee;
 }
 
-.target-lessons {
+.quiz-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 18px;
   margin: 10px 0 -2px;
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 700;
-  overflow-wrap: anywhere;
   text-align: center;
+}
+
+.quiz-session-meta p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .progress span {
@@ -550,6 +558,17 @@ input:focus-visible {
   font-weight: 720;
   letter-spacing: 0.02em;
   line-height: 1.25;
+  word-break: break-word;
+}
+
+.meaning-question {
+  width: 100%;
+  margin-bottom: 0;
+  color: var(--text);
+  font-size: clamp(1.6rem, 7vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
@@ -695,7 +714,7 @@ form label {
 
 .answer-details div {
   display: grid;
-  grid-template-columns: 3.5rem 1fr;
+  grid-template-columns: 7rem minmax(0, 1fr);
   gap: 8px;
 }
 
@@ -1236,6 +1255,10 @@ form label {
 
   .confirmation-details div {
     grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .answer-details div {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
   }
 
   .result-details {

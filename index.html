@@ -13,7 +13,7 @@
       <section id="home-screen" class="screen home-screen card" aria-labelledby="home-title">
         <p class="eyebrow">PINYIN PRACTICE</p>
         <h1 id="home-title">中国語 拼音クイズ</h1>
-        <p class="lead">表示された拼音に対応する中国語を入力してください</p>
+        <p class="lead">拼音や日本語の意味から、対応する簡体字を学習できます</p>
 
         <section class="handwriting-notice" aria-labelledby="handwriting-notice-title">
           <h2 id="handwriting-notice-title">手書き入力について</h2>
@@ -28,17 +28,44 @@
           <legend>学習モード</legend>
           <div class="mode-choice-grid">
             <label class="mode-choice">
-              <input type="radio" name="learning-mode" value="quiz" checked>
+              <input
+                type="radio"
+                name="learning-mode"
+                value="pinyin-to-hanzi"
+                aria-describedby="pinyin-mode-description"
+                checked
+              >
               <span>
-                <strong>クイズモード</strong>
-                <small>拼音を見て中国語を入力し、正誤を判定します</small>
+                <strong>拼音→簡体字</strong>
+                <small id="pinyin-mode-description">拼音を見て、対応する簡体字を入力します。</small>
               </span>
             </label>
             <label class="mode-choice">
-              <input type="radio" name="learning-mode" value="confirmation">
+              <input
+                type="radio"
+                name="learning-mode"
+                value="meaning-to-hanzi"
+                aria-describedby="meaning-mode-description"
+              >
+              <span>
+                <strong>日本語→簡体字</strong>
+                <small id="meaning-mode-description">
+                  日本語の意味を見て、対応する簡体字を入力します。
+                </small>
+              </span>
+            </label>
+            <label class="mode-choice">
+              <input
+                type="radio"
+                name="learning-mode"
+                value="review"
+                aria-describedby="review-mode-description"
+              >
               <span>
                 <strong>確認モード</strong>
-                <small>拼音を見て、答えと意味を確認しながら学習します</small>
+                <small id="review-mode-description">
+                  拼音・簡体字・意味を確認しながら学習します。
+                </small>
               </span>
             </label>
           </div>
@@ -122,7 +149,9 @@
         </fieldset>
 
         <div class="button-stack">
-          <button id="start-button" class="button button-primary" type="button">クイズを始める</button>
+          <button id="start-button" class="button button-primary" type="button">
+            拼音→簡体字を始める
+          </button>
           <div class="home-secondary-actions">
             <button id="home-review-button" class="button button-secondary" type="button" hidden>
               間違えた問題だけ復習
@@ -162,7 +191,10 @@
             </div>
           </div>
         </header>
-        <p id="quiz-target-lessons" class="target-lessons">対象：全課</p>
+        <div class="quiz-session-meta">
+          <p id="quiz-learning-mode">学習モード：拼音→簡体字</p>
+          <p id="quiz-target-lessons">対象：全課</p>
+        </div>
         <div
           id="progress-bar"
           class="progress"
@@ -175,12 +207,12 @@
           <span id="progress-fill"></span>
         </div>
 
-        <section class="quiz-question-area" aria-labelledby="pinyin">
-          <p id="prompt-label" class="prompt-label">この拼音の中国語は？</p>
-          <p id="pinyin" class="pinyin" lang="zh-Latn">lǐtáng</p>
+        <section class="quiz-question-area" aria-labelledby="prompt-label question-content">
+          <h2 id="prompt-label" class="prompt-label">この拼音の簡体字は？</h2>
+          <p id="question-content" class="question-content pinyin" lang="zh-Latn">lǐtáng</p>
         </section>
 
-        <section class="quiz-tools" aria-label="ヒントと発音">
+        <section id="quiz-tools" class="quiz-tools" aria-label="ヒントと発音">
           <div class="prompt-actions">
             <button id="quiz-pronunciation-button" class="pronunciation-button" type="button">
               🔊 発音を聞く
@@ -200,9 +232,10 @@
             class="answer-input chinese-text"
             name="answer"
             type="text"
-            lang="zh-Hans"
+            lang="zh-CN"
             inputmode="text"
             autocomplete="off"
+            autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
             enterkeyhint="done"
@@ -218,12 +251,20 @@
           <p id="judgement" class="judgement"></p>
           <dl class="answer-details">
             <div>
-              <dt>正解</dt>
-              <dd id="correct-answer" class="chinese-text" lang="zh-Hans"></dd>
+              <dt>簡体字</dt>
+              <dd id="correct-answer" class="chinese-text" lang="zh-CN"></dd>
+            </div>
+            <div>
+              <dt>拼音</dt>
+              <dd id="feedback-pinyin" lang="zh-Latn"></dd>
             </div>
             <div>
               <dt>意味</dt>
               <dd id="answer-meaning"></dd>
+            </div>
+            <div>
+              <dt>あなたの解答</dt>
+              <dd id="feedback-user-answer" class="chinese-text" lang="zh-CN"></dd>
             </div>
           </dl>
         </section>
@@ -289,6 +330,7 @@
         </div>
         <p id="result-planned" class="result-planned" hidden></p>
         <div class="session-meta" aria-label="出題条件">
+          <p id="result-learning-mode">学習モード：拼音→簡体字</p>
           <p id="result-target-lessons">対象：全課</p>
           <p id="result-question-count">出題数：0問</p>
         </div>
@@ -333,6 +375,7 @@
           </div>
         </div>
         <div class="session-meta" aria-label="確認条件">
+          <p id="review-learning-mode">学習モード：確認モード</p>
           <p id="review-target-lessons">対象：全課</p>
           <p id="review-question-count">予定単語数：0語</p>
         </div>
