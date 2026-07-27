@@ -136,6 +136,170 @@ button {
   min-height: 48px;
 }
 
+.ranked-map-home-card {
+  border-top: 4px solid #5a6673;
+}
+
+.ranked-map-home-lead {
+  margin-bottom: 24px;
+}
+
+.ranked-map-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ranked-map-feature {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #f8fafb;
+}
+
+.ranked-map-feature--current {
+  border-color: #8fb2cc;
+  background: var(--blue-soft);
+}
+
+.ranked-map-feature-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.ranked-map-feature-body {
+  padding: 14px;
+}
+
+.ranked-map-label {
+  margin-bottom: 3px;
+  color: var(--blue-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.ranked-map-feature h3 {
+  margin: 0 0 4px;
+  font-size: clamp(1.05rem, 4vw, 1.35rem);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ranked-map-feature-body > p:not(.ranked-map-label) {
+  margin-bottom: 0;
+}
+
+.ranked-map-feature-body > p {
+  font-variant-numeric: tabular-nums;
+}
+
+.ranked-map-remaining {
+  margin-top: 8px;
+  color: var(--blue-dark);
+  font-weight: 750;
+}
+
+.ranked-map-rotation {
+  margin-top: 26px;
+}
+
+.ranked-map-rotation h3 {
+  margin: 0 0 10px;
+  font-size: 1.08rem;
+}
+
+.ranked-map-schedule {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranked-map-schedule-item {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.ranked-map-schedule-item--current {
+  border-color: #8fb2cc;
+  background: var(--blue-soft);
+}
+
+.ranked-map-schedule-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 86px;
+  object-fit: cover;
+}
+
+.ranked-map-schedule-body {
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.ranked-map-schedule-body p {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.ranked-map-schedule-position {
+  color: var(--blue-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.ranked-map-schedule-name {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.ranked-map-schedule-time {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranked-season-countdown {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.ranked-season-countdown h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.ranked-season-countdown__value {
+  margin: 8px 0 3px;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.ranked-season-countdown__end {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
 .grammar-mode-choice-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1710,6 +1874,30 @@ form label {
   .home-screen > .card {
     padding: 22px 16px;
     border-radius: 10px;
+  }
+
+  .ranked-map-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ranked-map-feature-image {
+    aspect-ratio: 16 / 9;
+  }
+
+  .ranked-map-schedule-item {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .ranked-map-schedule-image {
+    min-height: 82px;
+  }
+
+  .ranked-map-schedule-time {
+    line-height: 1.5;
+  }
+
+  .ranked-season-countdown__value {
+    font-size: clamp(1.35rem, 7vw, 1.8rem);
   }
 
   .quiz-layout,

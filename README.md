@@ -28,8 +28,9 @@ GitHubリポジトリ `tyuugokugo` で公開する、中国語の単語・文法
 - PC・スマートフォン対応
 - 日本語の文章から中国語の文章へ直す、全73項目の文法クイズ
 - 文法クイズ専用の入力式・確認モード、文章一覧、結果画面
-- Chapter1〜Chapter7、各7語・全49語の英単語・英熟語一覧
+- Chapter1〜Chapter7、全49語の英単語・全21個の英熟語一覧
 - 行ごとに日本語訳を表示・非表示にできる英語学習機能
+- APIを使わず1分ごとに更新するApex Legendsランクマップ表示
 
 ## 使用技術
 
@@ -97,6 +98,14 @@ Web Speech APIに対応していないブラウザでは発音ボタンが無効
 「全Chapter」ページでは、同じ `englishVocabularyChapters` データからChapter1〜Chapter7の英単語表と英熟語表を順に生成し、全70項目をChapter別に確認できます。全Chapterでも日本語訳は初期状態で非表示で、各Chapter・各表の一括操作は互いに独立しています。
 
 英単語一覧はHistory APIに対応し、前後Chapterの移動履歴とブラウザバックが連携します。ページ内の「ホームに戻る」、ブラウザの戻るボタン、iPhone Safariの戻るスワイプも利用できます。英単語データは中国語データと分け、`english-vocabulary-data.js` で管理しています。
+
+## 現在のランクマップ
+
+ホーム画面の「英単語・英熟語」の下に「現在のランクマップ」ブロックを表示します。外部APIは使わず、JavaScriptだけでApex Legendsのランクマップローテーションを計算します。
+
+対象マップは Storm Point、World’s Edge、E-District の3つです。1マップ4時間30分、3マップで13時間30分の順番を繰り返し、日本時間2026年7月27日11:00のStorm Point開始を基準にしています。現在のマップと残り時間、次のマップに加え、現在枠とその後4枠を合わせた5件のローテーションを画像付きで表示します。日付をまたぐ枠を区別できるよう、一覧の時間帯は日本時間の月日と24時間表記の時刻で表示します。
+
+ローテーション一覧の下には「S29 SP2終了まで」を表示します。終了時刻は日本時間2026年8月5日02:00で、残り時間を日・時間・分に分けて表示します。終了後は負の時間を表示せず、「S29 SP2は終了しました。」へ切り替わります。外部APIは使用せず、マップ表示と残り時間を同じ処理で1分ごとに更新し、ブラウザをバックグラウンドから戻したときにも再計算します。
 
 ## 手書き入力
 
@@ -191,8 +200,14 @@ tyuugokugo/
 ├── grammar-data.js
 ├── english-vocabulary.js
 ├── english-vocabulary-data.js
+├── ranked-map.js
 ├── speech.js
 ├── words.js
+├── assets/
+│   └── images/
+│       ├── e-district.png
+│       ├── storm-point.png
+│       └── worlds-edge.png
 └── README.md
 ```
 
@@ -202,7 +217,9 @@ tyuugokugo/
 - `grammar.js`: 文法クイズの入力式・確認モード、文章一覧、検索、履歴、結果表示
 - `grammar-data.js`: 第1課〜第6課の文法問題73項目
 - `english-vocabulary.js`: Chapter共通一覧画面、意味の表示切り替え、英語画面の操作
-- `english-vocabulary-data.js`: Chapter1〜Chapter7、全49語の英単語・日本語訳
+- `english-vocabulary-data.js`: Chapter1〜Chapter7、英単語49語・英熟語21個と日本語訳
+- `ranked-map.js`: JST基準のランクマップ計算、表示、1分ごとの自動更新
+- `assets/images/`: Storm Point、World’s Edge、E-Districtの画像
 - `speech.js`: 中国語音声の選択と再生制御
 - `words.js`: lesson情報を含む77項目の単語データ
 - `.github/workflows/deploy.yml`: GitHub Pagesへの公開ワークフロー

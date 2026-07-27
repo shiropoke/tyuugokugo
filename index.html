@@ -375,6 +375,91 @@
             </button>
           </div>
         </section>
+
+        <section
+          class="ranked-map-home-card card"
+          aria-labelledby="ranked-map-home-title"
+        >
+          <p class="eyebrow">APEX RANKED MAPS</p>
+          <h2 id="ranked-map-home-title" class="home-feature-title">
+            現在のランクマップ
+          </h2>
+          <p class="lead ranked-map-home-lead">
+            Apex Legendsのランクマップローテーションを表示します。
+          </p>
+
+          <div class="ranked-map-feature-grid">
+            <article class="ranked-map-feature ranked-map-feature--current">
+              <img
+                id="ranked-current-image"
+                class="ranked-map-feature-image"
+                src="./assets/images/storm-point.png"
+                alt="Storm Point"
+                loading="lazy"
+                decoding="async"
+              >
+              <div class="ranked-map-feature-body">
+                <p class="ranked-map-label">現在</p>
+                <h3 id="ranked-current-name">Storm Point</h3>
+                <p id="ranked-current-time">11:00 ～ 15:30</p>
+                <p id="ranked-current-remaining" class="ranked-map-remaining">
+                  残り4時間30分
+                </p>
+              </div>
+            </article>
+
+            <article class="ranked-map-feature ranked-map-feature--next">
+              <img
+                id="ranked-next-image"
+                class="ranked-map-feature-image"
+                src="./assets/images/worlds-edge.png"
+                alt="World’s Edge"
+                loading="lazy"
+                decoding="async"
+              >
+              <div class="ranked-map-feature-body">
+                <p class="ranked-map-label">次</p>
+                <h3 id="ranked-next-name">World’s Edge</h3>
+                <p id="ranked-next-time">15:30 ～ 20:00</p>
+              </div>
+            </article>
+          </div>
+
+          <section
+            class="ranked-map-rotation"
+            aria-labelledby="ranked-map-rotation-title"
+          >
+            <h3 id="ranked-map-rotation-title">ローテーション</h3>
+            <ol id="ranked-map-schedule" class="ranked-map-schedule"></ol>
+          </section>
+          <section
+            class="ranked-season-countdown"
+            aria-labelledby="ranked-season-countdown-title"
+          >
+            <h3 id="ranked-season-countdown-title">S29 SP2終了まで</h3>
+            <p
+              id="ranked-season-countdown-value"
+              class="ranked-season-countdown__value"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              残り時間を計算しています
+            </p>
+            <p
+              id="ranked-season-countdown-end"
+              class="ranked-season-countdown__end"
+            >
+              終了日時：2026年8月5日 02:00
+            </p>
+          </section>
+          <p
+            id="ranked-map-update-status"
+            class="visually-hidden"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></p>
+        </section>
       </section>
 
       <section id="quiz-screen" class="screen quiz-layout" aria-labelledby="quiz-title" hidden>
@@ -1186,6 +1271,7 @@
     <script src="./grammar.js"></script>
     <script src="./english-vocabulary-data.js"></script>
     <script src="./english-vocabulary.js"></script>
+    <script src="./ranked-map.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>
