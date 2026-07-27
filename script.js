@@ -110,7 +110,8 @@ const SCREEN_HASHES = {
   grammarReviewInterrupted: "#grammar-review-interrupted",
   grammarSentenceList: "#grammar-sentences",
   wordList: "#words",
-  toneChart: "#tones"
+  toneChart: "#tones",
+  englishVocabulary: "#english-chapter-1"
 };
 
 const elements = {
@@ -126,7 +127,8 @@ const elements = {
     grammarReviewInterrupted: document.querySelector("#grammar-review-result-screen"),
     grammarSentenceList: document.querySelector("#grammar-sentence-list-screen"),
     wordList: document.querySelector("#word-list-screen"),
-    toneChart: document.querySelector("#tone-chart-screen")
+    toneChart: document.querySelector("#tone-chart-screen"),
+    englishVocabulary: document.querySelector("#english-vocabulary-screen")
   },
   learningModeInputs: [...document.querySelectorAll('input[name="learning-mode"]')],
   lessonInputs: [...document.querySelectorAll('input[name="lesson"]')],
@@ -877,20 +879,44 @@ function isValidScreenName(screenName) {
 }
 
 function getScreenFromHash() {
+  if (getEnglishChapterFromHash() !== null) {
+    return "englishVocabulary";
+  }
+
   const entry = Object.entries(SCREEN_HASHES).find(([, hash]) => hash === window.location.hash);
   return entry?.[0] || "home";
 }
 
-function createHistoryState(screenName, from = null) {
+function getEnglishChapterFromHash() {
+  const match = /^#english-chapter-([1-7])$/.exec(window.location.hash);
+  return match ? Number(match[1]) : null;
+}
+
+function getScreenHash(screenName, stateData = {}) {
+  if (screenName === "englishVocabulary") {
+    const chapterNumber = Number(stateData.chapter);
+    return window.englishVocabularyApp?.isValidChapter(chapterNumber)
+      ? `#english-chapter-${chapterNumber}`
+      : SCREEN_HASHES.home;
+  }
+
+  return SCREEN_HASHES[screenName];
+}
+
+function createHistoryState(screenName, from = null, stateData = {}) {
   return {
     app: HISTORY_APP_ID,
     screen: screenName,
-    from
+    from,
+    ...stateData
   };
 }
 
 function renderScreenFromHistory(screenName, options = {}) {
-  const { focus = false } = options;
+  const {
+    focus = false,
+    stateData = {}
+  } = options;
 
   if (!isValidScreenName(screenName)) {
     replaceHistoryWithHome({ focus });
@@ -903,6 +929,19 @@ function renderScreenFromHistory(screenName, options = {}) {
     showWordListScreen({ focus, resetSearch: true });
   } else if (screenName === "toneChart") {
     showToneChartScreen({ focus });
+  } else if (screenName === "englishVocabulary") {
+    const chapterNumber = Number(
+      stateData.chapter ??
+      history.state?.chapter ??
+      getEnglishChapterFromHash()
+    );
+
+    if (!window.englishVocabularyApp?.isValidChapter(chapterNumber)) {
+      replaceHistoryWithHome({ focus });
+      return;
+    }
+
+    window.englishVocabularyApp.showScreen(chapterNumber, { focus });
   } else if (screenName === "grammarSentenceList") {
     window.grammarApp?.showSentenceListScreen({
       focus,
@@ -945,7 +984,8 @@ function navigateToScreen(screenName, options = {}) {
   const {
     historyAction = "push",
     from = currentScreenName,
-    focus = true
+    focus = true,
+    stateData = {}
   } = options;
 
   if (!isValidScreenName(screenName)) {
@@ -955,23 +995,28 @@ function navigateToScreen(screenName, options = {}) {
   const currentState = history.state;
   const sameScreen =
     currentState?.app === HISTORY_APP_ID &&
-    currentState.screen === screenName;
+    currentState.screen === screenName &&
+    (
+      screenName !== "englishVocabulary" ||
+      currentState.chapter === stateData.chapter
+    );
+  const targetHash = getScreenHash(screenName, stateData);
 
   if (historyAction === "push" && !sameScreen) {
     history.pushState(
-      createHistoryState(screenName, from),
+      createHistoryState(screenName, from, stateData),
       "",
-      SCREEN_HASHES[screenName]
+      targetHash
     );
   } else if (historyAction === "replace" || (historyAction === "push" && sameScreen)) {
     history.replaceState(
-      createHistoryState(screenName, from),
+      createHistoryState(screenName, from, stateData),
       "",
-      SCREEN_HASHES[screenName]
+      targetHash
     );
   }
 
-  renderScreenFromHistory(screenName, { focus });
+  renderScreenFromHistory(screenName, { focus, stateData });
 }
 
 function replaceHistoryWithHome(options = {}) {
@@ -990,6 +1035,18 @@ function initializeHistory() {
       ? history.state.screen
       : null;
   let initialScreen = stateScreen || getScreenFromHash();
+  let initialStateData = {};
+
+  if (initialScreen === "englishVocabulary") {
+    const chapterNumber = Number(
+      history.state?.chapter ?? getEnglishChapterFromHash()
+    );
+    if (window.englishVocabularyApp?.isValidChapter(chapterNumber)) {
+      initialStateData = { chapter: chapterNumber };
+    } else {
+      initialScreen = "home";
+    }
+  }
 
   if (
     [
@@ -1007,11 +1064,14 @@ function initializeHistory() {
   }
 
   history.replaceState(
-    createHistoryState(initialScreen, null),
+    createHistoryState(initialScreen, null, initialStateData),
     "",
-    SCREEN_HASHES[initialScreen]
+    getScreenHash(initialScreen, initialStateData)
   );
-  renderScreenFromHistory(initialScreen, { focus: false });
+  renderScreenFromHistory(initialScreen, {
+    focus: false,
+    stateData: initialStateData
+  });
 }
 
 function getSelectedSessionConfiguration() {
@@ -1880,6 +1940,9 @@ function handlePopState(event) {
     event.state?.app === HISTORY_APP_ID
       ? event.state.screen
       : getScreenFromHash();
+  const targetStateData = {
+    chapter: event.state?.chapter ?? getEnglishChapterFromHash()
+  };
 
   if (
     ["grammarQuiz", "grammarReview"].includes(currentScreenName) &&
@@ -1896,12 +1959,18 @@ function handlePopState(event) {
       finishQuizAsInterrupted({ focus: false });
     } else {
       resetQuizState();
-      renderScreenFromHistory(targetScreen, { focus: false });
+      renderScreenFromHistory(targetScreen, {
+        focus: false,
+        stateData: targetStateData
+      });
     }
     return;
   }
 
-  renderScreenFromHistory(targetScreen, { focus: false });
+  renderScreenFromHistory(targetScreen, {
+    focus: false,
+    stateData: targetStateData
+  });
 }
 
 elements.learningModeInputs.forEach((input) => {

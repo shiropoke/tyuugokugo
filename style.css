@@ -116,6 +116,26 @@ button {
   width: 100%;
 }
 
+.english-home-lead {
+  margin-bottom: 24px;
+}
+
+.english-home-card {
+  border-top: 4px solid #526f84;
+}
+
+.english-chapter-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.english-chapter-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+}
+
 .grammar-mode-choice-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1265,6 +1285,115 @@ form label {
   margin-top: auto;
 }
 
+.english-vocabulary-screen {
+  max-width: 1040px;
+}
+
+.english-vocabulary-description {
+  max-width: 760px;
+  margin-bottom: 8px;
+}
+
+.english-vocabulary-count {
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.english-vocabulary-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #9aa7b2;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.english-vocabulary-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.english-vocabulary-table caption {
+  padding: 14px 12px;
+  border-bottom: 1px solid #9aa7b2;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.english-vocabulary-table th,
+.english-vocabulary-table td {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.english-vocabulary-table thead th {
+  color: var(--text);
+  background: #edf2f5;
+  font-weight: 800;
+  text-align: left;
+}
+
+.english-vocabulary-table th:last-child,
+.english-vocabulary-table td:last-child {
+  border-right: 0;
+}
+
+.english-vocabulary-table tbody tr:last-child th,
+.english-vocabulary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.english-word-column {
+  width: 30%;
+}
+
+.english-meaning-column {
+  width: 48%;
+}
+
+.english-action-column {
+  width: 22%;
+}
+
+.english-word {
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1.02rem;
+  font-weight: 750;
+  text-align: left;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.english-meaning {
+  line-height: 1.65;
+}
+
+.english-meaning[data-visible="false"] {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.english-vocabulary-action {
+  text-align: center;
+}
+
+.english-meaning-toggle {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  white-space: nowrap;
+}
+
 .tone-chart-screen {
   max-width: 1500px;
   color: #111111;
@@ -1463,6 +1592,12 @@ form label {
   }
 }
 
+@media (min-width: 768px) {
+  .english-chapter-buttons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 480px) {
   .home-screen {
     width: calc(100% - 20px);
@@ -1572,6 +1707,33 @@ form label {
 
   .grammar-review-answer .confirmation-details div {
     grid-template-columns: 5rem minmax(0, 1fr);
+  }
+
+  .english-vocabulary-table caption {
+    padding: 12px 10px;
+  }
+
+  .english-vocabulary-table th,
+  .english-vocabulary-table td {
+    padding: 10px 8px;
+    font-size: 0.875rem;
+  }
+
+  .english-word-column {
+    width: 29%;
+  }
+
+  .english-meaning-column {
+    width: 47%;
+  }
+
+  .english-action-column {
+    width: 24%;
+  }
+
+  .english-meaning-toggle {
+    padding-inline: 4px;
+    font-size: 0.875rem;
   }
 
   .dialog-actions {
