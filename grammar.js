@@ -49,6 +49,8 @@ window.grammarApp = (() => {
     answerForm: document.querySelector("#grammar-answer-form"),
     answerInput: document.querySelector("#grammar-answer-input"),
     inputError: document.querySelector("#grammar-input-error"),
+    quizActionArea: document.querySelector("#grammar-quiz-action-area"),
+    answerActions: document.querySelector("#grammar-answer-actions"),
     checkButton: document.querySelector("#grammar-check-button"),
     skipButton: document.querySelector("#grammar-skip-button"),
     feedback: document.querySelector("#grammar-feedback"),
@@ -70,8 +72,6 @@ window.grammarApp = (() => {
     reviewPronunciationButton: document.querySelector(
       "#grammar-review-pronunciation-button"
     ),
-    quizNavigation: document.querySelector("#grammar-quiz-navigation"),
-
     resultScreen: document.querySelector("#grammar-result-screen"),
     resultHomeTopButton: document.querySelector("#grammar-result-home-top-button"),
     resultTitle: document.querySelector("#grammar-result-title"),
@@ -478,6 +478,27 @@ window.grammarApp = (() => {
     updateReviewPrimaryAction();
   }
 
+  function updateInputQuizActionVisibility() {
+    const isAnswered = state.currentAnswered;
+    const isLastQuestion =
+      state.currentIndex >= state.questions.length - 1;
+
+    elements.answerActions.hidden = isAnswered;
+    elements.nextButton.hidden = !isAnswered;
+
+    if (!isAnswered) {
+      return;
+    }
+
+    elements.nextButton.textContent = isLastQuestion
+      ? "結果を見る"
+      : "次の問題";
+    elements.nextButton.setAttribute(
+      "aria-label",
+      isLastQuestion ? "文法クイズ結果を見る" : "次の問題へ進む"
+    );
+  }
+
   function renderQuestion() {
     const question = state.questions[state.currentIndex];
     const currentNumber = state.currentIndex + 1;
@@ -508,10 +529,9 @@ window.grammarApp = (() => {
 
     elements.answerForm.hidden = reviewMode;
     elements.reviewControls.hidden = !reviewMode;
-    elements.quizNavigation.hidden = reviewMode;
+    elements.quizActionArea.hidden = reviewMode;
     elements.feedback.hidden = true;
     elements.feedback.classList.remove("correct", "incorrect");
-    elements.nextButton.hidden = true;
 
     if (reviewMode) {
       resetReviewAnswerDisplay();
@@ -522,7 +542,7 @@ window.grammarApp = (() => {
     }
 
     elements.answerForm.reset();
-    elements.answerInput.disabled = false;
+    elements.answerInput.readOnly = false;
     elements.checkButton.disabled = false;
     elements.skipButton.disabled = false;
     elements.inputError.hidden = true;
@@ -531,8 +551,7 @@ window.grammarApp = (() => {
     elements.pronunciationButton.disabled = !speechController.isSupported;
     elements.pronunciationButton.dataset.defaultLabel = "発音を聞く";
     elements.pronunciationButton.textContent = "発音を聞く";
-    elements.nextButton.textContent =
-      currentNumber === totalQuestions ? "結果を見る" : "次の問題";
+    updateInputQuizActionVisibility();
     requestAnimationFrame(() =>
       elements.answerInput.focus({ preventScroll: true })
     );
@@ -639,8 +658,8 @@ window.grammarApp = (() => {
     }
 
     const question = state.questions[state.currentIndex];
-    state.currentAnswered = true;
     recordAnswer(question, userAnswer, wasCorrect, skipped);
+    state.currentAnswered = true;
     if (wasCorrect) {
       state.correctCount += 1;
     }
@@ -654,7 +673,7 @@ window.grammarApp = (() => {
       `${((state.currentIndex + 1) / state.questions.length) * 100}%`;
     elements.inputError.hidden = true;
     elements.answerInput.removeAttribute("aria-invalid");
-    elements.answerInput.disabled = true;
+    elements.answerInput.readOnly = true;
     elements.checkButton.disabled = true;
     elements.skipButton.disabled = true;
     elements.feedback.hidden = false;
@@ -673,8 +692,10 @@ window.grammarApp = (() => {
     if (!speechController.isSupported) {
       elements.pronunciationButton.title = speechController.unavailableMessage;
     }
-    elements.nextButton.hidden = false;
-    elements.nextButton.focus();
+    updateInputQuizActionVisibility();
+    requestAnimationFrame(() =>
+      elements.nextButton.focus({ preventScroll: true })
+    );
   }
 
   function submitAnswer(event) {
@@ -702,6 +723,10 @@ window.grammarApp = (() => {
   }
 
   function skipQuestion() {
+    if (state.currentAnswered || isReviewMode()) {
+      return;
+    }
+
     showAnswerResult(false, true, "");
   }
 
@@ -1098,6 +1123,19 @@ window.grammarApp = (() => {
     }
   }
 
+  function handleNextButtonKeydown(event) {
+    if (
+      event.key !== "Enter" ||
+      event.isComposing ||
+      event.keyCode === 229
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    moveToNextQuestion();
+  }
+
   function getKindLabel(kind) {
     return kind === "phrase" ? "語句" : "文章";
   }
@@ -1274,6 +1312,7 @@ window.grammarApp = (() => {
     });
     elements.skipButton.addEventListener("click", skipQuestion);
     elements.nextButton.addEventListener("click", moveToNextQuestion);
+    elements.nextButton.addEventListener("keydown", handleNextButtonKeydown);
     elements.reviewPrimaryAction.addEventListener(
       "click",
       handleReviewPrimaryAction

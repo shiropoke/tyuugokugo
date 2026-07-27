@@ -9,7 +9,7 @@
     >
     <link rel="icon" href="data:,">
     <title>中国語学習クイズ</title>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style.css?v=20260727-4">
   </head>
   <body>
     <main class="app-shell">
@@ -557,9 +557,19 @@
             enterkeyhint="done"
           >
           <p id="input-error" class="input-error" role="alert" hidden>中国語を入力してください。</p>
-          <div class="answer-actions">
-            <button id="check-button" class="button button-primary" type="submit">答え合わせ</button>
-            <button id="skip-button" class="button button-secondary" type="button">わからない</button>
+          <div id="quiz-action-area" class="quiz-action-area">
+            <div id="quiz-answer-actions" class="answer-actions">
+              <button id="check-button" class="button button-primary" type="submit">答え合わせ</button>
+              <button id="skip-button" class="button button-secondary" type="button">わからない</button>
+            </div>
+            <button
+              id="next-button"
+              class="button button-primary quiz-next-button"
+              type="button"
+              hidden
+            >
+              次の問題
+            </button>
           </div>
         </form>
 
@@ -622,9 +632,6 @@
           </div>
         </section>
 
-        <footer id="quiz-navigation" class="quiz-navigation">
-          <button id="next-button" class="button button-primary" type="button" hidden>次の問題</button>
-        </footer>
       </section>
 
       <section
@@ -761,12 +768,22 @@
           <p id="grammar-input-error" class="input-error" role="alert" hidden>
             中国語を入力してください。
           </p>
-          <div class="answer-actions">
-            <button id="grammar-check-button" class="button button-primary" type="submit">
-              答え合わせ
-            </button>
-            <button id="grammar-skip-button" class="button button-secondary" type="button">
-              わからない
+          <div id="grammar-quiz-action-area" class="quiz-action-area">
+            <div id="grammar-answer-actions" class="answer-actions">
+              <button id="grammar-check-button" class="button button-primary" type="submit">
+                答え合わせ
+              </button>
+              <button id="grammar-skip-button" class="button button-secondary" type="button">
+                わからない
+              </button>
+            </div>
+            <button
+              id="grammar-next-button"
+              class="button button-primary quiz-next-button"
+              type="button"
+              hidden
+            >
+              次の問題
             </button>
           </div>
         </form>
@@ -813,11 +830,6 @@
           <p id="grammar-speech-message" class="support-message" data-speech-message hidden></p>
         </section>
 
-        <footer id="grammar-quiz-navigation" class="quiz-navigation">
-          <button id="grammar-next-button" class="button button-primary" type="button" hidden>
-            次の問題
-          </button>
-        </footer>
       </section>
 
       <section id="result-screen" class="screen screen-wide content-screen" aria-labelledby="result-title" hidden>
@@ -1284,10 +1296,10 @@
     <script src="./words.js"></script>
     <script src="./grammar-data.js"></script>
     <script src="./speech.js"></script>
-    <script src="./grammar.js"></script>
+    <script src="./grammar.js?v=20260727-5"></script>
     <script src="./english-vocabulary-data.js"></script>
     <script src="./english-vocabulary.js"></script>
     <script src="./ranked-map.js?v=20260727-3" defer></script>
-    <script src="./script.js"></script>
+    <script src="./script.js?v=20260727-4"></script>
   </body>
 </html>

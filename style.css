@@ -966,9 +966,30 @@ form label {
 
 .answer-actions {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 10px;
+  width: 100%;
+}
+
+.quiz-action-area {
+  width: 100%;
   margin-top: 14px;
+}
+
+.quiz-action-area [hidden] {
+  display: none !important;
+}
+
+.quiz-action-area .button {
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.quiz-next-button {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .feedback {
@@ -1023,13 +1044,6 @@ form label {
 
 .chinese-text {
   font-family: var(--chinese-font);
-}
-
-.quiz-navigation {
-  display: grid;
-  gap: 10px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
 }
 
 .confirmation-controls {
@@ -1998,7 +2012,7 @@ form label {
   }
 
   .answer-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
 
   .prompt-actions {

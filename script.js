@@ -165,6 +165,8 @@ const elements = {
   answerForm: document.querySelector("#answer-form"),
   answerInput: document.querySelector("#answer-input"),
   inputError: document.querySelector("#input-error"),
+  quizActionArea: document.querySelector("#quiz-action-area"),
+  answerActions: document.querySelector("#quiz-answer-actions"),
   checkButton: document.querySelector("#check-button"),
   skipButton: document.querySelector("#skip-button"),
   feedback: document.querySelector("#feedback"),
@@ -180,7 +182,6 @@ const elements = {
   confirmationPinyin: document.querySelector("#confirmation-pinyin"),
   confirmationWord: document.querySelector("#confirmation-word"),
   confirmationMeaning: document.querySelector("#confirmation-meaning"),
-  quizNavigation: document.querySelector("#quiz-navigation"),
   resultHomeTopButton: document.querySelector("#result-home-top-button"),
   resultTitle: document.querySelector("#result-title"),
   resultDescription: document.querySelector("#result-description"),
@@ -1234,6 +1235,27 @@ function getReviewedSourceWords() {
     .filter(Boolean);
 }
 
+function updateInputQuizActionVisibility() {
+  const isAnswered = quizState.currentAnswered;
+  const isLastQuestion =
+    quizState.currentIndex >= quizState.questions.length - 1;
+
+  elements.answerActions.hidden = isAnswered;
+  elements.nextButton.hidden = !isAnswered;
+
+  if (!isAnswered) {
+    return;
+  }
+
+  elements.nextButton.textContent = isLastQuestion
+    ? "結果を見る"
+    : "次の問題";
+  elements.nextButton.setAttribute(
+    "aria-label",
+    isLastQuestion ? "クイズ結果を見る" : "次の問題へ進む"
+  );
+}
+
 function startQuizFromReviewedWords() {
   const reviewedWords = getReviewedSourceWords();
   const selectedLessons = [...new Set(reviewedWords.map((item) => item.lesson))].sort(
@@ -1291,10 +1313,9 @@ function renderQuestion() {
   elements.hintButton.textContent = "日本語のヒントを見る";
   elements.feedback.hidden = true;
   elements.feedback.classList.remove("correct", "incorrect");
-  elements.nextButton.hidden = true;
   elements.answerForm.hidden = confirmationMode;
   elements.confirmationControls.hidden = !confirmationMode;
-  elements.quizNavigation.hidden = confirmationMode;
+  elements.quizActionArea.hidden = confirmationMode;
   elements.feedbackPinyin.textContent = "";
   elements.feedbackUserAnswer.textContent = "";
 
@@ -1309,12 +1330,12 @@ function renderQuestion() {
   }
 
   elements.answerForm.reset();
-  elements.answerInput.disabled = false;
+  elements.answerInput.readOnly = false;
   elements.checkButton.disabled = false;
   elements.skipButton.disabled = false;
   elements.inputError.hidden = true;
   elements.answerInput.removeAttribute("aria-invalid");
-  elements.nextButton.textContent = currentNumber === totalQuestions ? "結果を見る" : "次の問題";
+  updateInputQuizActionVisibility();
   requestAnimationFrame(() => elements.answerInput.focus({ preventScroll: true }));
 }
 
@@ -1387,8 +1408,8 @@ function showAnswerResult(wasCorrect, skipped = false, userAnswer = "") {
   }
 
   const question = quizState.questions[quizState.currentIndex];
-  quizState.currentAnswered = true;
   recordAnswer(question, userAnswer, wasCorrect, skipped);
+  quizState.currentAnswered = true;
 
   if (wasCorrect) {
     quizState.correctCount += 1;
@@ -1400,7 +1421,7 @@ function showAnswerResult(wasCorrect, skipped = false, userAnswer = "") {
   elements.progressFill.style.width = `${((quizState.currentIndex + 1) / quizState.questions.length) * 100}%`;
   elements.inputError.hidden = true;
   elements.answerInput.removeAttribute("aria-invalid");
-  elements.answerInput.disabled = true;
+  elements.answerInput.readOnly = true;
   elements.checkButton.disabled = true;
   elements.skipButton.disabled = true;
   elements.feedback.hidden = false;
@@ -1414,11 +1435,17 @@ function showAnswerResult(wasCorrect, skipped = false, userAnswer = "") {
     elements.quizTools.hidden = false;
     elements.hintButton.hidden = true;
   }
-  elements.nextButton.hidden = false;
-  elements.nextButton.focus();
+  updateInputQuizActionVisibility();
+  requestAnimationFrame(() =>
+    elements.nextButton.focus({ preventScroll: true })
+  );
 }
 
 function skipQuestion() {
+  if (quizState.currentAnswered || isConfirmationMode()) {
+    return;
+  }
+
   showAnswerResult(false, true, "");
 }
 
