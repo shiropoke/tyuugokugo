@@ -888,15 +888,24 @@ function getScreenFromHash() {
 }
 
 function getEnglishChapterFromHash() {
+  if (window.location.hash === "#english-all-chapters") {
+    return "all";
+  }
+
   const match = /^#english-chapter-([1-7])$/.exec(window.location.hash);
   return match ? Number(match[1]) : null;
 }
 
 function getScreenHash(screenName, stateData = {}) {
   if (screenName === "englishVocabulary") {
-    const chapterNumber = Number(stateData.chapter);
-    return window.englishVocabularyApp?.isValidChapter(chapterNumber)
-      ? `#english-chapter-${chapterNumber}`
+    const chapterValue = window.englishVocabularyApp?.normalizeChapterValue(
+      stateData.chapter
+    );
+    if (chapterValue === "all") {
+      return "#english-all-chapters";
+    }
+    return window.englishVocabularyApp?.isValidChapter(chapterValue)
+      ? `#english-chapter-${chapterValue}`
       : SCREEN_HASHES.home;
   }
 
@@ -930,18 +939,18 @@ function renderScreenFromHistory(screenName, options = {}) {
   } else if (screenName === "toneChart") {
     showToneChartScreen({ focus });
   } else if (screenName === "englishVocabulary") {
-    const chapterNumber = Number(
+    const chapterValue = window.englishVocabularyApp?.normalizeChapterValue(
       stateData.chapter ??
       history.state?.chapter ??
       getEnglishChapterFromHash()
     );
 
-    if (!window.englishVocabularyApp?.isValidChapter(chapterNumber)) {
+    if (!window.englishVocabularyApp?.isValidChapter(chapterValue)) {
       replaceHistoryWithHome({ focus });
       return;
     }
 
-    window.englishVocabularyApp.showScreen(chapterNumber, { focus });
+    window.englishVocabularyApp.showScreen(chapterValue, { focus });
   } else if (screenName === "grammarSentenceList") {
     window.grammarApp?.showSentenceListScreen({
       focus,
@@ -1038,11 +1047,11 @@ function initializeHistory() {
   let initialStateData = {};
 
   if (initialScreen === "englishVocabulary") {
-    const chapterNumber = Number(
+    const chapterValue = window.englishVocabularyApp?.normalizeChapterValue(
       history.state?.chapter ?? getEnglishChapterFromHash()
     );
-    if (window.englishVocabularyApp?.isValidChapter(chapterNumber)) {
-      initialStateData = { chapter: chapterNumber };
+    if (window.englishVocabularyApp?.isValidChapter(chapterValue)) {
+      initialStateData = { chapter: chapterValue };
     } else {
       initialScreen = "home";
     }

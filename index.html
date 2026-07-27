@@ -365,6 +365,14 @@
             >
               Chapter7
             </button>
+            <button
+              class="button button-secondary english-chapter-button english-all-chapters-button"
+              type="button"
+              data-english-chapter="all"
+              aria-label="全Chapterの英単語を表示する"
+            >
+              全Chapter
+            </button>
           </div>
         </section>
       </section>
@@ -1116,11 +1124,20 @@
             ホームに戻る
           </button>
         </header>
-        <p class="eyebrow">ENGLISH VOCABULARY</p>
-        <h1 id="english-vocabulary-title" tabindex="-1">Chapter1</h1>
-        <p class="lead english-vocabulary-description">
-          英単語の右側にある「表示」ボタンを押すと、日本語の意味を確認できます。
-        </p>
+        <div class="english-chapter-navigation">
+          <div
+            id="english-chapter-previous"
+            class="english-chapter-navigation__previous"
+          ></div>
+          <div class="english-chapter-navigation__title">
+            <p class="eyebrow english-section-label">ENGLISH VOCABULARY</p>
+            <h1 id="english-vocabulary-title" tabindex="-1">Chapter1</h1>
+          </div>
+          <div
+            id="english-chapter-next"
+            class="english-chapter-navigation__next"
+          ></div>
+        </div>
         <p id="english-vocabulary-count" class="english-vocabulary-count">全7語</p>
         <p
           id="english-vocabulary-status"
@@ -1130,24 +1147,10 @@
           aria-atomic="true"
         ></p>
 
-        <div class="english-vocabulary-table-wrap">
-          <table class="english-vocabulary-table">
-            <caption id="english-vocabulary-caption">Chapter1 英単語・英熟語一覧</caption>
-            <colgroup>
-              <col class="english-word-column">
-              <col class="english-meaning-column">
-              <col class="english-action-column">
-            </colgroup>
-            <thead>
-              <tr>
-                <th scope="col">英単語</th>
-                <th scope="col">日本語の意味</th>
-                <th scope="col">操作</th>
-              </tr>
-            </thead>
-            <tbody id="english-vocabulary-table-body"></tbody>
-          </table>
-        </div>
+        <div
+          id="english-vocabulary-content"
+          class="english-vocabulary-content"
+        ></div>
       </section>
     </main>
 
