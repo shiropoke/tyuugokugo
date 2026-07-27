@@ -136,10 +136,6 @@ button {
   min-height: 48px;
 }
 
-.english-all-chapters-button {
-  grid-column: 1 / -1;
-}
-
 .grammar-mode-choice-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1656,12 +1652,6 @@ form label {
   .tone-table th,
   .tone-table td {
     padding: 0.65rem 0.55rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .english-chapter-buttons {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
