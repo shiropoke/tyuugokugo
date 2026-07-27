@@ -12,6 +12,20 @@ const englishVocabularyChapters = [
       { word: "permission", meaning: "許可" },
       { word: "oversight", meaning: "見落とし、不注意によるミス" },
       { word: "implementation", meaning: "実施、実行、導入" }
+    ],
+    phrases: [
+      {
+        phrase: "be designed to do",
+        meaning: "～するように設計されている、～することを目的としている"
+      },
+      {
+        phrase: "help 人 (to) do",
+        meaning: "人が～するのを助ける"
+      },
+      {
+        phrase: "plan to do",
+        meaning: "～する予定である、～するつもりである"
+      }
     ]
   },
   {
@@ -25,6 +39,20 @@ const englishVocabularyChapters = [
       { word: "attach", meaning: "取り付ける、くっつける" },
       { word: "surface", meaning: "表面" },
       { word: "exhibition", meaning: "展示会、展覧会" }
+    ],
+    phrases: [
+      {
+        phrase: "look like",
+        meaning: "～のように見える、～に似ている"
+      },
+      {
+        phrase: "to date",
+        meaning: "現在までに、これまでに"
+      },
+      {
+        phrase: "so that",
+        meaning: "～するように、～するために"
+      }
     ]
   },
   {
@@ -38,6 +66,20 @@ const englishVocabularyChapters = [
       { word: "diverse", meaning: "多様な、さまざまな" },
       { word: "wage", meaning: "賃金、給料" },
       { word: "persist", meaning: "困難があっても続ける、やり続ける" }
+    ],
+    phrases: [
+      {
+        phrase: "move into",
+        meaning: "～へ移る、～という新しい段階に入る"
+      },
+      {
+        phrase: "be expected to do",
+        meaning: "～すると予想されている、～することが期待されている"
+      },
+      {
+        phrase: "focus on",
+        meaning: "～に集中する、～を重視する"
+      }
     ]
   },
   {
@@ -51,6 +93,20 @@ const englishVocabularyChapters = [
       { word: "ritual", meaning: "儀式の、儀礼的な" },
       { word: "utensil", meaning: "用具、器具" },
       { word: "genuine", meaning: "本物の、真正の、心からの" }
+    ],
+    phrases: [
+      {
+        phrase: "depend on",
+        meaning: "～によって決まる、～に依存する"
+      },
+      {
+        phrase: "work for",
+        meaning: "～に勤める、～のために働く"
+      },
+      {
+        phrase: "be intimidated by",
+        meaning: "～に怖がらされる、～におじけづく"
+      }
     ]
   },
   {
@@ -64,6 +120,20 @@ const englishVocabularyChapters = [
       { word: "traverse", meaning: "横断する、踏破する" },
       { word: "summit", meaning: "山頂、頂上" },
       { word: "proceed", meaning: "進む、前進する、続行する" }
+    ],
+    phrases: [
+      {
+        phrase: "make rest stops",
+        meaning: "途中で休憩する、休憩を取る"
+      },
+      {
+        phrase: "set off",
+        meaning: "出発する、旅立つ"
+      },
+      {
+        phrase: "engage in",
+        meaning: "～に参加する、～に従事する"
+      }
     ]
   },
   {
@@ -77,6 +147,20 @@ const englishVocabularyChapters = [
       { word: "swap", meaning: "交換、物々交換" },
       { word: "garment", meaning: "衣服、衣類" },
       { word: "ultimately", meaning: "最終的に、結局" }
+    ],
+    phrases: [
+      {
+        phrase: "consist of",
+        meaning: "～から成る、～で構成されている"
+      },
+      {
+        phrase: "throw away",
+        meaning: "～を捨てる"
+      },
+      {
+        phrase: "embark on",
+        meaning: "～に着手する、～を始める"
+      }
     ]
   },
   {
@@ -90,6 +174,20 @@ const englishVocabularyChapters = [
       { word: "initially", meaning: "初めは、当初" },
       { word: "aspire", meaning: "熱望する、志す" },
       { word: "pandemic", meaning: "世界的な感染症の大流行、パンデミック" }
+    ],
+    phrases: [
+      {
+        phrase: "find it easy to do",
+        meaning: "～するのは簡単だと思う、容易に～できる"
+      },
+      {
+        phrase: "make people happy",
+        meaning: "人々を幸せにする、喜ばせる"
+      },
+      {
+        phrase: "express gratitude",
+        meaning: "感謝を表す、感謝の気持ちを伝える"
+      }
     ]
   }
 ];
