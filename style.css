@@ -163,11 +163,35 @@ button {
   background: var(--blue-soft);
 }
 
+.ranked-map-image-area {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: #edf2f5;
+}
+
 .ranked-map-feature-image {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+.ranked-map-image-fallback {
+  display: grid;
+  min-height: clamp(180px, 42vw, 300px);
+  margin: 0;
+  padding: 20px;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.ranked-map-image-fallback[hidden] {
+  display: none;
 }
 
 .ranked-map-feature-body {
@@ -243,6 +267,17 @@ button {
   object-fit: cover;
 }
 
+.ranked-map-schedule-image-area {
+  height: 100%;
+  min-height: 86px;
+}
+
+.ranked-map-schedule-image-area .ranked-map-image-fallback {
+  min-height: 86px;
+  padding: 8px;
+  font-size: 0.72rem;
+}
+
 .ranked-map-schedule-body {
   min-width: 0;
   padding: 10px 12px;
@@ -265,9 +300,18 @@ button {
 }
 
 .ranked-map-schedule-time {
+  display: block;
   color: var(--muted);
   font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
+}
+
+.ranked-map-render-error {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .ranked-season-countdown {

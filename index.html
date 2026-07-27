@@ -390,14 +390,22 @@
 
           <div class="ranked-map-feature-grid">
             <article class="ranked-map-feature ranked-map-feature--current">
-              <img
-                id="ranked-current-image"
-                class="ranked-map-feature-image"
-                src="./assets/images/storm-point.png"
-                alt="Storm Point"
-                loading="lazy"
-                decoding="async"
-              >
+              <div class="ranked-map-image-area">
+                <img
+                  id="ranked-current-image"
+                  class="ranked-map-feature-image"
+                  src="./assets/ranked-maps/storm-point.jpeg?v=20260727-3"
+                  alt="Storm Point"
+                  loading="eager"
+                  decoding="async"
+                >
+                <p
+                  id="ranked-current-image-fallback"
+                  class="ranked-map-image-fallback"
+                  role="status"
+                  hidden
+                ></p>
+              </div>
               <div class="ranked-map-feature-body">
                 <p class="ranked-map-label">現在</p>
                 <h3 id="ranked-current-name">Storm Point</h3>
@@ -409,14 +417,22 @@
             </article>
 
             <article class="ranked-map-feature ranked-map-feature--next">
-              <img
-                id="ranked-next-image"
-                class="ranked-map-feature-image"
-                src="./assets/images/worlds-edge.png"
-                alt="World’s Edge"
-                loading="lazy"
-                decoding="async"
-              >
+              <div class="ranked-map-image-area">
+                <img
+                  id="ranked-next-image"
+                  class="ranked-map-feature-image"
+                  src="./assets/ranked-maps/worlds-edge.jpeg?v=20260727-3"
+                  alt="World’s Edge"
+                  loading="eager"
+                  decoding="async"
+                >
+                <p
+                  id="ranked-next-image-fallback"
+                  class="ranked-map-image-fallback"
+                  role="status"
+                  hidden
+                ></p>
+              </div>
               <div class="ranked-map-feature-body">
                 <p class="ranked-map-label">次</p>
                 <h3 id="ranked-next-name">World’s Edge</h3>
@@ -1271,7 +1287,7 @@
     <script src="./grammar.js"></script>
     <script src="./english-vocabulary-data.js"></script>
     <script src="./english-vocabulary.js"></script>
-    <script src="./ranked-map.js"></script>
+    <script src="./ranked-map.js?v=20260727-3" defer></script>
     <script src="./script.js"></script>
   </body>
 </html>

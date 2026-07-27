@@ -32,7 +32,9 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p site-dist
-          cp index.html style.css script.js grammar.js grammar-data.js speech.js words.js english-vocabulary.js english-vocabulary-data.js site-dist/
+          cp index.html style.css script.js grammar.js grammar-data.js speech.js words.js english-vocabulary.js english-vocabulary-data.js ranked-map.js site-dist/
+          mkdir -p site-dist/assets/ranked-maps
+          cp assets/ranked-maps/*.jpeg site-dist/assets/ranked-maps/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

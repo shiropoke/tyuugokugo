@@ -107,6 +107,10 @@ Web Speech APIに対応していないブラウザでは発音ボタンが無効
 
 ローテーション一覧の下には「S29 SP2終了まで」を表示します。終了時刻は日本時間2026年8月5日02:00で、残り時間を日・時間・分に分けて表示します。終了後は負の時間を表示せず、「S29 SP2は終了しました。」へ切り替わります。外部APIは使用せず、マップ表示と残り時間を同じ処理で1分ごとに更新し、ブラウザをバックグラウンドから戻したときにも再計算します。
 
+iPhone Safariでも安定して表示できるよう、マップ画像はリポジトリ内の `./assets/ranked-maps/` から相対パスで読み込みます。読み込みに失敗した場合は壊れた画像アイコンを隠し、マップ名を含む代替メッセージを表示します。基準時刻とS29 SP2終了時刻はUTCミリ秒で管理し、曖昧なDate文字列パースや `Intl.DateTimeFormat.prototype.formatRange` は使用していません。
+
+現在・次のカード、5件のローテーション、カウントダウンは個別の安全な描画処理で更新します。一部の描画に失敗しても後続表示を止めず、最終フォールバックを表示してコンソールへ原因を記録します。初回はDOM構築後に即時描画し、1分タイマーに加えて `visibilitychange` と `pageshow` でも再計算するため、SafariのBack/Forward Cacheから復帰した場合にも表示を更新します。
+
 ## 手書き入力
 
 スマートフォンでは、簡体中国語の手書きキーボードを利用して解答できます。キーボードの追加・切り替え方法は端末によって異なります。
@@ -204,10 +208,10 @@ tyuugokugo/
 ├── speech.js
 ├── words.js
 ├── assets/
-│   └── images/
-│       ├── e-district.png
-│       ├── storm-point.png
-│       └── worlds-edge.png
+│   └── ranked-maps/
+│       ├── e-district.jpeg
+│       ├── storm-point.jpeg
+│       └── worlds-edge.jpeg
 └── README.md
 ```
 
@@ -219,7 +223,7 @@ tyuugokugo/
 - `english-vocabulary.js`: Chapter共通一覧画面、意味の表示切り替え、英語画面の操作
 - `english-vocabulary-data.js`: Chapter1〜Chapter7、英単語49語・英熟語21個と日本語訳
 - `ranked-map.js`: JST基準のランクマップ計算、表示、1分ごとの自動更新
-- `assets/images/`: Storm Point、World’s Edge、E-Districtの画像
+- `assets/ranked-maps/`: Storm Point、World’s Edge、E-DistrictのJPEG画像
 - `speech.js`: 中国語音声の選択と再生制御
 - `words.js`: lesson情報を含む77項目の単語データ
 - `.github/workflows/deploy.yml`: GitHub Pagesへの公開ワークフロー
